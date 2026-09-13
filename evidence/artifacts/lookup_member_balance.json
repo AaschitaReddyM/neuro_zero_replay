@@ -1,0 +1,221 @@
+{
+  "metadata": {
+    "version": "1.0",
+    "created_at": "2026-09-13T00:21:33.513610",
+    "updated_at": null,
+    "target_app": "http://localhost:8080",
+    "capability_name": "lookup_member_balance",
+    "description": "Look up a member by ID and retrieve their account balance and status",
+    "tenant_id": null,
+    "app_version": null,
+    "author": null,
+    "tags": [],
+    "confidence_score": null
+  },
+  "parameters": {
+    "member_id": {
+      "type": "string",
+      "description": "Member ID to look up",
+      "required": true,
+      "default": null
+    }
+  },
+  "outputs": {
+    "member_name": {
+      "type": "string",
+      "description": "Full name of the member"
+    },
+    "balance": {
+      "type": "number",
+      "description": "Current account balance"
+    },
+    "status": {
+      "type": "string",
+      "description": "Account status (Active, Frozen, Closed)"
+    }
+  },
+  "steps": [
+    {
+      "step_id": 1,
+      "action_type": "navigate",
+      "target": {
+        "strategy": "semantic_selector",
+        "value": "http://localhost:8080",
+        "role": null,
+        "name": null,
+        "fallback_strategies": []
+      },
+      "value": null,
+      "output_key": null,
+      "description": "Navigate to the banking system homepage",
+      "wait_after": null,
+      "risk_level": "safe"
+    },
+    {
+      "step_id": 2,
+      "action_type": "type",
+      "target": {
+        "strategy": "accessibility_role",
+        "value": "textbox:Member ID",
+        "role": "textbox",
+        "name": "Member ID",
+        "fallback_strategies": [
+          "semantic_selector"
+        ]
+      },
+      "value": "{{member_id}}",
+      "output_key": null,
+      "description": "Enter the member ID in the search field",
+      "wait_after": null,
+      "risk_level": "safe"
+    },
+    {
+      "step_id": 3,
+      "action_type": "click",
+      "target": {
+        "strategy": "accessibility_role",
+        "value": "button:Search",
+        "role": "button",
+        "name": "Search",
+        "fallback_strategies": [
+          "text_content"
+        ]
+      },
+      "value": null,
+      "output_key": null,
+      "description": "Click the Search button to look up the member",
+      "wait_after": null,
+      "risk_level": "safe"
+    },
+    {
+      "step_id": 4,
+      "action_type": "wait",
+      "target": {
+        "strategy": "semantic_selector",
+        "value": "#lookup-result",
+        "role": null,
+        "name": null,
+        "fallback_strategies": []
+      },
+      "value": "2000",
+      "output_key": null,
+      "description": "Wait for the search results to appear",
+      "wait_after": null,
+      "risk_level": "safe"
+    },
+    {
+      "step_id": 5,
+      "action_type": "extract",
+      "target": {
+        "strategy": "semantic_selector",
+        "value": ".legacy-table tr:nth-child(1) td:nth-child(2)",
+        "role": null,
+        "name": null,
+        "fallback_strategies": [
+          "text_content"
+        ]
+      },
+      "value": null,
+      "output_key": "member_name",
+      "description": "Extract the member name from the results table",
+      "wait_after": null,
+      "risk_level": "safe"
+    },
+    {
+      "step_id": 6,
+      "action_type": "extract",
+      "target": {
+        "strategy": "semantic_selector",
+        "value": ".legacy-table tr:nth-child(3) td:nth-child(2)",
+        "role": null,
+        "name": null,
+        "fallback_strategies": [
+          "text_content"
+        ]
+      },
+      "value": null,
+      "output_key": "balance",
+      "description": "Extract the account balance from the results table",
+      "wait_after": null,
+      "risk_level": "safe"
+    },
+    {
+      "step_id": 7,
+      "action_type": "extract",
+      "target": {
+        "strategy": "semantic_selector",
+        "value": ".legacy-table tr:nth-child(2) td:nth-child(2)",
+        "role": null,
+        "name": null,
+        "fallback_strategies": [
+          "text_content"
+        ]
+      },
+      "value": null,
+      "output_key": "status",
+      "description": "Extract the account status from the results table",
+      "wait_after": null,
+      "risk_level": "safe"
+    }
+  ],
+  "checkpoint": {
+    "step_id": 7,
+    "condition": {
+      "type": "element_visible",
+      "target": {
+        "strategy": "semantic_selector",
+        "value": ".legacy-table",
+        "role": null,
+        "name": null,
+        "fallback_strategies": []
+      },
+      "text_contains": "Member Found"
+    },
+    "description": "Verify that member results are displayed"
+  },
+  "error_handlers": [
+    {
+      "error_type": "business_outcome",
+      "fallback_strategy": null,
+      "outcome": "member_not_found",
+      "condition": {
+        "text_contains": "Member not found"
+      },
+      "description": "Handle the case where the member doesn't exist"
+    },
+    {
+      "error_type": "element_not_found",
+      "fallback_strategy": "text_content_match",
+      "outcome": null,
+      "condition": null,
+      "description": "Try finding elements by text content if accessibility fails"
+    },
+    {
+      "error_type": "timeout",
+      "fallback_strategy": "increase_wait_time",
+      "outcome": null,
+      "condition": {
+        "text_contains": "timeout"
+      },
+      "description": "Handle slow page loads by increasing wait time"
+    },
+    {
+      "error_type": "permission_denied",
+      "fallback_strategy": "request_permission_refresh",
+      "outcome": "access_denied",
+      "condition": {
+        "text_contains": "permission"
+      },
+      "description": "Handle access permission issues"
+    },
+    {
+      "error_type": "session_expired",
+      "fallback_strategy": "retry_with_refresh",
+      "outcome": "session_timeout",
+      "condition": {
+        "text_contains": "session"
+      },
+      "description": "Handle session expiration by retrying after refresh"
+    }
+  ]
+}
