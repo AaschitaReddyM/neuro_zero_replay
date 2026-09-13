@@ -21,7 +21,7 @@ class Config:
     # Safety Configuration
     ALLOWED_DOMAINS: List[str] = os.getenv("ALLOWED_DOMAINS", "localhost,127.0.0.1").split(",")
     ALLOWED_ACTION_TYPES: List[str] = os.getenv("ALLOWED_ACTION_TYPES", "navigate,click,type,extract,wait").split(",")
-    RISKY_ACTION_TYPES: List[str] = os.getenv("RISKY_ACTION_TYPES", "delete,submit,confirm").split(",")
+    RISKY_ACTION_TYPES: List[str] = os.getenv("RISKY_ACTION_TYPES", "submit,confirm").split(",")
     
     # Logging Configuration
     LOG_LEVEL: str = os.getenv("LOG_LEVEL", "INFO")
