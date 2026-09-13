@@ -1,0 +1,230 @@
+{
+  "metadata": {
+    "version": "1.0",
+    "created_at": "2026-09-13T00:19:19.427737",
+    "target_app": "http://localhost:8080",
+    "capability_name": "transfer_funds",
+    "description": "Transfer funds between accounts with validation and confirmation",
+    "tenant_id": null,
+    "app_version": null
+  },
+  "parameters": {
+    "from_account": {
+      "type": "string",
+      "description": "Source account number",
+      "required": true,
+      "default": null
+    },
+    "to_account": {
+      "type": "string",
+      "description": "Destination account number",
+      "required": true,
+      "default": null
+    },
+    "amount": {
+      "type": "number",
+      "description": "Transfer amount",
+      "required": true,
+      "default": null
+    }
+  },
+  "outputs": {
+    "confirmation_number": {
+      "type": "string",
+      "description": "Transaction confirmation number"
+    },
+    "status": {
+      "type": "string",
+      "description": "Transfer status (completed, failed, pending)"
+    }
+  },
+  "steps": [
+    {
+      "step_id": 1,
+      "action_type": "navigate",
+      "target": {
+        "strategy": "semantic_selector",
+        "value": "http://localhost:8080",
+        "role": null,
+        "name": null,
+        "fallback_strategies": []
+      },
+      "value": null,
+      "output_key": null,
+      "description": "Navigate to banking system homepage",
+      "wait_after": null,
+      "risk_level": "safe"
+    },
+    {
+      "step_id": 2,
+      "action_type": "click",
+      "target": {
+        "strategy": "text_content",
+        "value": "Transfer Funds",
+        "role": null,
+        "name": null,
+        "fallback_strategies": []
+      },
+      "value": null,
+      "output_key": null,
+      "description": "Click Transfer Funds navigation button",
+      "wait_after": null,
+      "risk_level": "safe"
+    },
+    {
+      "step_id": 3,
+      "action_type": "type",
+      "target": {
+        "strategy": "accessibility_role",
+        "value": "textbox:From Account",
+        "role": "textbox",
+        "name": "From Account",
+        "fallback_strategies": [
+          "semantic_selector"
+        ]
+      },
+      "value": "{{from_account}}",
+      "output_key": null,
+      "description": "Enter source account number",
+      "wait_after": null,
+      "risk_level": "reversible"
+    },
+    {
+      "step_id": 4,
+      "action_type": "type",
+      "target": {
+        "strategy": "accessibility_role",
+        "value": "textbox:To Account",
+        "role": "textbox",
+        "name": "To Account",
+        "fallback_strategies": [
+          "semantic_selector"
+        ]
+      },
+      "value": "{{to_account}}",
+      "output_key": null,
+      "description": "Enter destination account number",
+      "wait_after": null,
+      "risk_level": "reversible"
+    },
+    {
+      "step_id": 5,
+      "action_type": "type",
+      "target": {
+        "strategy": "accessibility_role",
+        "value": "textbox:Amount",
+        "role": "textbox",
+        "name": "Amount",
+        "fallback_strategies": [
+          "semantic_selector"
+        ]
+      },
+      "value": "{{amount}}",
+      "output_key": null,
+      "description": "Enter transfer amount",
+      "wait_after": null,
+      "risk_level": "reversible"
+    },
+    {
+      "step_id": 6,
+      "action_type": "click",
+      "target": {
+        "strategy": "accessibility_role",
+        "value": "button:Transfer",
+        "role": "button",
+        "name": "Transfer",
+        "fallback_strategies": [
+          "text_content"
+        ]
+      },
+      "value": null,
+      "output_key": null,
+      "description": "Click Transfer button to initiate transfer",
+      "wait_after": null,
+      "risk_level": "risky"
+    },
+    {
+      "step_id": 7,
+      "action_type": "wait",
+      "target": {
+        "strategy": "semantic_selector",
+        "value": "#transfer-result",
+        "role": null,
+        "name": null,
+        "fallback_strategies": []
+      },
+      "value": "2000",
+      "output_key": null,
+      "description": "Wait for transfer processing to complete",
+      "wait_after": null,
+      "risk_level": "safe"
+    },
+    {
+      "step_id": 8,
+      "action_type": "extract",
+      "target": {
+        "strategy": "semantic_selector",
+        "value": "#transfer-result",
+        "role": null,
+        "name": null,
+        "fallback_strategies": [
+          "text_content"
+        ]
+      },
+      "value": null,
+      "output_key": "confirmation_number",
+      "description": "Extract confirmation number from results",
+      "wait_after": null,
+      "risk_level": "safe"
+    }
+  ],
+  "checkpoint": {
+    "step_id": 8,
+    "condition": {
+      "type": "element_visible",
+      "target": {
+        "strategy": "semantic_selector",
+        "value": "#transfer-result",
+        "role": null,
+        "name": null,
+        "fallback_strategies": []
+      },
+      "text_contains": "Transfer Completed"
+    },
+    "description": "Verify transfer completion and confirmation"
+  },
+  "error_handlers": [
+    {
+      "error_type": "business_outcome",
+      "fallback_strategy": null,
+      "outcome": "validation_error",
+      "condition": {
+        "text_contains": "Please fill in all fields"
+      },
+      "description": "Handle missing required fields"
+    },
+    {
+      "error_type": "business_outcome",
+      "fallback_strategy": null,
+      "outcome": "invalid_amount",
+      "condition": {
+        "text_contains": "Amount must be greater than 0"
+      },
+      "description": "Handle invalid transfer amount"
+    },
+    {
+      "error_type": "element_not_found",
+      "fallback_strategy": "text_content_match",
+      "outcome": null,
+      "condition": null,
+      "description": "Fallback to text content matching"
+    },
+    {
+      "error_type": "timeout",
+      "fallback_strategy": "increase_wait_time",
+      "outcome": null,
+      "condition": null,
+      "description": "Handle slow transfer processing"
+    }
+  ]
+}
