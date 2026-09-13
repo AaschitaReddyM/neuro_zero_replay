@@ -28,6 +28,10 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
 
+    - name: Setup Environment File
+      run: cp .env.example .env
+
+
     - name: Run Deterministic Replay Tests
       run: |
         python test_replay.py
