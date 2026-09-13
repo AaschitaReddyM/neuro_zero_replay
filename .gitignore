@@ -54,3 +54,7 @@ Thumbs.db
 # Temporary files
 *.tmp
 *.bak
+
+# Assignment context & prompts (not for public repo)
+context/
+assignment_text.txt
