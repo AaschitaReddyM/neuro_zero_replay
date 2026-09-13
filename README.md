@@ -1,17 +1,21 @@
-<div align="center">
-  <img src="assets/logo.png" alt="NeuroZero Replay Logo" width="160" height="160" style="border-radius: 20px;" />
-  <h1>NeuroZero Replay</h1>
-  <p><strong>Neural Discovery • Zero-LLM Deterministic Replay • Enterprise FinTech Computer-Use Automation</strong></p>
+<p align="center">
+  <img src="assets/logo.png" alt="NeuroZero Replay Logo" width="160" />
+</p>
 
-  <p>
-    <img src="https://img.shields.io/badge/CI-Passing-brightgreen?style=flat-square&logo=githubactions" alt="CI" />
-    <img src="https://img.shields.io/badge/Python-3.10%20%7C%203.11-blue?style=flat-square&logo=python" alt="Python Version" />
-    <img src="https://img.shields.io/badge/Playwright-Automated-green?style=flat-square" alt="Playwright" />
-    <img src="https://img.shields.io/badge/Replay-Zero--LLM%20Deterministic-purple?style=flat-square" alt="Zero-LLM Replay" />
-    <img src="https://img.shields.io/badge/Domain-FinTech%20%26%20Banking-0052cc?style=flat-square" alt="FinTech Banking" />
-    <img src="https://img.shields.io/badge/License-MIT-yellow?style=flat-square" alt="License" />
-  </p>
-</div>
+<h1 align="center">NeuroZero Replay</h1>
+
+<p align="center">
+  <strong>Neural Discovery • Zero-LLM Deterministic Replay • Enterprise FinTech Computer-Use Automation</strong>
+</p>
+
+<p align="center">
+  <a href="https://github.com/AaschitaReddyM/neuro_zero_replay/actions"><img src="https://github.com/AaschitaReddyM/neuro_zero_replay/actions/workflows/ci.yml/badge.svg" alt="CI Pipeline" /></a>
+  <img src="https://img.shields.io/badge/Python-3.10%20%7C%203.11-blue?style=flat-square&logo=python" alt="Python Version" />
+  <img src="https://img.shields.io/badge/Playwright-Automated-green?style=flat-square" alt="Playwright" />
+  <img src="https://img.shields.io/badge/Replay-Zero--LLM%20Deterministic-purple?style=flat-square" alt="Zero-LLM Replay" />
+  <img src="https://img.shields.io/badge/Domain-FinTech%20%26%20Banking-0052cc?style=flat-square" alt="FinTech Banking" />
+  <img src="https://img.shields.io/badge/License-MIT-yellow?style=flat-square" alt="License" />
+</p>
 
 A production-ready computer-use automation platform that enables LLM-driven UI discovery with zero-LLM deterministic replay capabilities, purpose-built for financial workflows (member lookup, funds transfer, and account management).
 
