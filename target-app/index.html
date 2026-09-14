@@ -109,51 +109,55 @@
 
         .result.account-active {
             background-color: #f0fdf4;
-            border: 1px solid #bbf7d0;
-            border-left: 6px solid #16a34a;
+            border: 1px solid #86efac;
+            border-left: 8px solid #16a34a;
             color: #14532d;
         }
 
         .result.account-frozen {
             background-color: #fef2f2;
-            border: 1px solid #fecaca;
-            border-left: 6px solid #ef4444;
+            border: 1px solid #fca5a5;
+            border-left: 8px solid #dc2626;
             color: #7f1d1d;
         }
 
         .result.account-closed {
             background-color: #f8fafc;
             border: 1px solid #cbd5e1;
-            border-left: 6px solid #0f172a;
+            border-left: 8px solid #0f172a;
             color: #0f172a;
         }
 
         .status-badge {
-            display: inline-block;
-            padding: 3px 12px;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 4px 14px;
             border-radius: 9999px;
             font-size: 13px;
-            font-weight: 700;
-            letter-spacing: 0.2px;
+            font-weight: 800;
+            letter-spacing: 0.4px;
+            text-transform: uppercase;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.18);
             vertical-align: middle;
         }
 
         .status-badge.status-active {
-            background-color: #dcfce7;
-            color: #15803d;
-            border: 1px solid #86efac;
+            background-color: #16a34a;
+            color: #ffffff;
+            border: 1px solid #15803d;
         }
 
         .status-badge.status-frozen {
-            background-color: #fee2e2;
-            color: #b91c1c;
-            border: 1px solid #fca5a5;
+            background-color: #dc2626;
+            color: #ffffff;
+            border: 1px solid #991b1b;
         }
 
         .status-badge.status-closed {
             background-color: #0f172a;
-            color: #f8fafc;
-            border: 1px solid #334155;
+            color: #ffffff;
+            border: 1px solid #000000;
         }
         
         .nav {
@@ -441,17 +445,24 @@
             if (member) {
                 let badgeClass = 'status-active';
                 let icon = '●';
+                let cardTheme = 'account-active';
+
                 if (member.status === 'Frozen') {
                     badgeClass = 'status-frozen';
                     icon = '❄';
+                    cardTheme = 'account-frozen';
                 } else if (member.status === 'Closed') {
                     badgeClass = 'status-closed';
                     icon = '✖';
+                    cardTheme = 'account-closed';
                 }
                 const statusBadge = `<span class="status-badge ${badgeClass}">${icon} ${member.status}</span>`;
 
                 const html = `
-                    <h3>Member Found</h3>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px solid rgba(0,0,0,0.08); padding-bottom: 8px;">
+                        <h3 style="margin: 0;">Member Found</h3>
+                        ${statusBadge}
+                    </div>
                     <table class="legacy-table">
                         <tr><td><strong>Name:</strong></td><td>${member.name}</td></tr>
                         <tr><td><strong>Status:</strong></td><td>${statusBadge}</td></tr>
@@ -460,7 +471,7 @@
                         <tr><td><strong>Member Since:</strong></td><td>${member.memberSince}</td></tr>
                     </table>
                 `;
-                showResult(resultDiv, 'success', html);
+                showResult(resultDiv, cardTheme, html);
             } else {
                 showResult(resultDiv, 'error', 'Member not found. Please check the member ID and try again.');
             }
