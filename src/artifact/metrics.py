@@ -118,7 +118,7 @@ class MetricsCollector:
         reliability_factors = {
             "success_rate": success_rate,
             "execution_consistency": self._calculate_consistency(history),
-            "error_recovery_rate": self._calculate_error_recovery(history),
+            "error_recovery_rate": self._calculate_error_recovery_rate(history),
             "fallback_efficiency": self._calculate_fallback_efficiency(history)
         }
         
