@@ -1,4 +1,5 @@
-# Submission Checklist for interface.ai Assessment
+# NeuroZero Replay: Submission Checklist
+**Agentic Computer-Use & Deterministic Replay Engine (interface.ai Assessment)**
 
 ## ✅ Required Files
 

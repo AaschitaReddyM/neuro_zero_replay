@@ -1,6 +1,7 @@
-# Production Deployment Guide
+# NeuroZero Replay: Production Deployment Guide
+**Agentic Computer-Use & Deterministic Replay Engine**
 
-This guide covers deploying the Computer-Use Automation System in production environments.
+This guide covers deploying the NeuroZero Replay system in production environments.
 
 ## Prerequisites
 
@@ -15,8 +16,8 @@ This guide covers deploying the Computer-Use Automation System in production env
 
 ```bash
 # Clone repository
-git clone https://github.com/YOUR_USERNAME/computer-use-automation-system.git
-cd computer-use-automation-system
+git clone https://github.com/AaschitaReddyM/neuro_zero_replay.git
+cd neuro_zero_replay
 
 # Install dependencies
 pip install -r requirements.txt

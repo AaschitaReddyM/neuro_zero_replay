@@ -2,10 +2,10 @@
   <img src="assets/logo.png" alt="NeuroZero Replay Logo" width="160" />
 </p>
 
-<h1 align="center">NeuroZero Replay</h1>
+<h1 align="center">NeuroZero Replay: Agentic Computer-Use & Deterministic Replay Engine</h1>
 
 <p align="center">
-  <strong>Neural Discovery & Zero-LLM Deterministic Replay • Enterprise FinTech Computer-Use Automation</strong>
+  <strong>Autonomous LLM Discovery • Zero-LLM Deterministic Replay • Enterprise FinTech Automation</strong>
 </p>
 
 <p align="center">

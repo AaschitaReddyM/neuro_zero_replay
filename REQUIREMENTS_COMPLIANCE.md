@@ -1,4 +1,5 @@
-# Assignment Requirements Compliance Check
+# NeuroZero Replay: Assignment Requirements Traceability Matrix
+**Agentic Computer-Use & Deterministic Replay Engine (interface.ai Assessment Compliance)**
 
 ## ✅ Core Requirements (Section 3.1-3.7)
 

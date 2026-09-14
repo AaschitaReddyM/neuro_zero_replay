@@ -1,4 +1,5 @@
-# Evidence Summary
+# NeuroZero Replay: Evidence Summary & Execution Audit
+**Agentic Computer-Use & Deterministic Replay Engine**
 
 ## Directory Structure
 

@@ -1,4 +1,5 @@
-# Computer-Use Automation System - Design Report
+# NeuroZero Replay: Agentic Computer-Use & Deterministic Replay Engine
+## Comprehensive System Design & Architecture Report
 
 ## Architecture
 
