@@ -80,9 +80,22 @@ async def run_replay(artifact_path: str, parameters: dict):
         sys.exit(1)
 
 
+BANNER = """
+  _   _                      _____                 ____            _             
+ | \\ | | ___ _   _ _ __ ___ |__  /___ _ __ ___    |  _ \\ ___ _ __ | | __ _ _   _ 
+ |  \\| |/ _ \\ | | | '__/ _ \\  / // _ \\ '__/ _ \\   | |_) / _ \\ '_ \\| |/ _` | | | |
+ | |\\  |  __/ |_| | | | (_) |/ /|  __/ | | (_) |  |  _ <  __/ |_) | | (_| | |_| |
+ |_| \\_|\\___|\\__,_|_|  \\___//____\\___|_|  \\___/   |_| \\_\\___| .__/|_|\\__,_|\\__, |
+                                                             |_|            |___/ 
+  Agentic Computer-Use & Zero-LLM Deterministic Replay Engine
+  v1.0.0 | Enterprise FinTech Edition
+"""
+
+
 async def main():
     """Main entry point."""
-    parser = argparse.ArgumentParser(description="Computer-Use Automation System")
+    print(BANNER)
+    parser = argparse.ArgumentParser(description="NeuroZero Replay: Agentic Computer-Use & Deterministic Replay Engine")
     subparsers = parser.add_subparsers(dest="mode", help="Operation mode")
     
     # Discovery mode

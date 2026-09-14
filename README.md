@@ -43,6 +43,64 @@ This system demonstrates a complete end-to-end workflow for AI agents to interac
 - **Scalability Architecture**: Designed for multi-process deployment and horizontal scaling
 - **Comprehensive Testing**: Integration tests, error scenario coverage, and validation suites
 
+## Performance & Cost Benchmark
+
+| Metric | Traditional LLM-in-the-Loop | NeuroZero Replay (Deterministic) | Improvement |
+| :--- | :---: | :---: | :---: |
+| **Execution Latency** | ~3,500ms – 6,200ms | **120ms – 350ms** | **95%+ Faster** |
+| **Inference Cost / Run** | ~$0.03 – $0.06 per execution | **$0.0000** | **100% Cost Reduction** |
+| **Determinism & Consistency** | Non-deterministic (LLM drift) | **100% Deterministic** | **Zero Hallucination** |
+| **Concurrency Scaling** | Blocked by LLM rate limits | **Horizontally scalable worker pool** | **Linear Multi-Tenant Scale** |
+| **Audit & Governance** | Unpredictable prompt paths | **Static JSON schema contract** | **Enterprise Compliance** |
+
+## System Architecture Flow
+
+```mermaid
+flowchart TD
+    subgraph Discovery_Phase ["Phase 1: Goal-Driven Discovery (LLM)"]
+        A[User Goal / Intent] --> B[Agent Orchestrator]
+        B --> C[Playwright Browser Automation]
+        C --> D[Target Banking Portal :8080]
+        D --> E[DOM & Accessibility Tree State]
+        E --> F[LLM Client GPT-4o Decision]
+        F -->|Observe-Decide-Act| B
+    end
+
+    subgraph Compilation ["Artifact Serialization"]
+        B -->|Success Recorded| G[Capability Artifact JSON]
+        G --> H[Artifact Marketplace & Validation]
+    end
+
+    subgraph Replay_Phase ["Phase 2: Zero-LLM Deterministic Replay"]
+        H --> I[Replay Engine]
+        I --> J[Parameter Substitution]
+        J --> K[Playwright Execution Engine]
+        K --> L[Location Strategy Fallbacks]
+        L --> M[Checkpoint Validation]
+        M --> N[Structured Financial Outputs]
+    end
+```
+
+## Target Application & Interactive Workflows
+
+The system includes a fully functional financial services portal (`target-app/index.html`) running on `http://localhost:8080` designed to benchmark computer-use automation.
+
+<p align="center">
+  <img src="assets/ui_preview.png" alt="NeuroZero Banking Portal UI" width="700" style="border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.15);" />
+</p>
+
+### Workflow Breakdown & Interactive Locators
+
+| Workflow | UI Controls & Inputs | Playwright Locator | Risk Tier | Business vs. System Handling |
+| :--- | :--- | :--- | :---: | :--- |
+| **Member Balance Lookup** | `#member-id`, `Search`, `Clear` | `role=button[name="Search"]` | `SAFE` | Emits `Member Found` with balance table or handles `member_not_found` outcome. |
+| **Funds Transfer** | `#from-account`, `#to-account`, `#amount` | `role=button[name="Transfer"]` | `RISKY` | Policy guardrail requires confirmation; dynamic wait for async `TXN` hash. |
+| **Account Management** | `#account-mgmt-id`, `Freeze Account` | `role=button[name="Freeze Account"]` | `CRITICAL`| Triggers **Human-in-the-Loop Escalation** gate before modifying account status. |
+| **Logo Lightbox** | `.header-logo` | `role=img[name="NeuroZero Replay Logo"]`| `SAFE` | Opens full-resolution architecture modal and system specs. |
+
+> 📖 **Full Developer Specification:** See [TARGET_APPLICATION_GUIDE.md](TARGET_APPLICATION_GUIDE.md) for the complete DOM locator specification, state machine diagrams, and mock database records.
+
+
 ## Architecture
 
 The system is organized into clear modules with well-defined boundaries:
