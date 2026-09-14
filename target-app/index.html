@@ -106,6 +106,55 @@
             border: 1px solid #bee5eb;
             color: #0c5460;
         }
+
+        .result.account-active {
+            background-color: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            border-left: 6px solid #16a34a;
+            color: #14532d;
+        }
+
+        .result.account-frozen {
+            background-color: #fef2f2;
+            border: 1px solid #fecaca;
+            border-left: 6px solid #ef4444;
+            color: #7f1d1d;
+        }
+
+        .result.account-closed {
+            background-color: #f8fafc;
+            border: 1px solid #cbd5e1;
+            border-left: 6px solid #0f172a;
+            color: #0f172a;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 3px 12px;
+            border-radius: 9999px;
+            font-size: 13px;
+            font-weight: 700;
+            letter-spacing: 0.2px;
+            vertical-align: middle;
+        }
+
+        .status-badge.status-active {
+            background-color: #dcfce7;
+            color: #15803d;
+            border: 1px solid #86efac;
+        }
+
+        .status-badge.status-frozen {
+            background-color: #fee2e2;
+            color: #b91c1c;
+            border: 1px solid #fca5a5;
+        }
+
+        .status-badge.status-closed {
+            background-color: #0f172a;
+            color: #f8fafc;
+            border: 1px solid #334155;
+        }
         
         .nav {
             display: flex;
@@ -320,6 +369,7 @@
                 <input type="text" id="account-mgmt-id" placeholder="Enter member ID">
             </div>
             <button onclick="manageAccount()">Manage Account</button>
+            <button class="secondary" onclick="clearAccountMgmt()">Clear</button>
             
             <div id="account-result" class="result"></div>
         </div>
@@ -389,12 +439,23 @@
             const member = members[memberId];
             
             if (member) {
+                let badgeClass = 'status-active';
+                let icon = '●';
+                if (member.status === 'Frozen') {
+                    badgeClass = 'status-frozen';
+                    icon = '❄';
+                } else if (member.status === 'Closed') {
+                    badgeClass = 'status-closed';
+                    icon = '✖';
+                }
+                const statusBadge = `<span class="status-badge ${badgeClass}">${icon} ${member.status}</span>`;
+
                 const html = `
                     <h3>Member Found</h3>
                     <table class="legacy-table">
                         <tr><td><strong>Name:</strong></td><td>${member.name}</td></tr>
-                        <tr><td><strong>Status:</strong></td><td>${member.status}</td></tr>
-                        <tr><td><strong>Balance:</strong></td><td>$${member.balance.toFixed(2)}</td></tr>
+                        <tr><td><strong>Status:</strong></td><td>${statusBadge}</td></tr>
+                        <tr><td><strong>Balance:</strong></td><td><strong>$${member.balance.toFixed(2)}</strong></td></tr>
                         <tr><td><strong>Account Type:</strong></td><td>${member.accountType}</td></tr>
                         <tr><td><strong>Member Since:</strong></td><td>${member.memberSince}</td></tr>
                     </table>
@@ -490,24 +551,65 @@
             const member = members[memberId];
             
             if (member) {
-                const statusColor = member.status === 'Frozen' ? '#ef4444' : (member.status === 'Closed' ? '#94a3b8' : '#22c55e');
-                const html = `
-                    <h3>Account Management</h3>
-                    <p><strong>Member:</strong> ${member.name} (${memberId})</p>
-                    <p><strong>Status:</strong> <span style="color: ${statusColor}; font-weight: bold;">${member.status}</span></p>
-                    <p><strong>Current Balance:</strong> $${member.balance.toFixed(2)}</p>
-                    <div style="margin-top: 15px;">
-                        <button onclick="triggerHumanEscalation('${memberId}')" style="background: ${member.status === 'Frozen' ? '#16a34a' : '#dc2626'}; color: white; font-weight: 600;">
-                            ${member.status === 'Frozen' ? 'Unfreeze Account (Policy Gate)' : 'Freeze Account (Policy Gate)'}
+                let resultTheme = 'account-active';
+                let badgeClass = 'status-active';
+                let icon = '●';
+                let actionBtnHtml = '';
+
+                if (member.status === 'Frozen') {
+                    resultTheme = 'account-frozen';
+                    badgeClass = 'status-frozen';
+                    icon = '❄';
+                    actionBtnHtml = `
+                        <button onclick="triggerHumanEscalation('${memberId}')" style="background: #16a34a; color: white; font-weight: 600;">
+                            Unfreeze Account (Policy Gate)
                         </button>
+                    `;
+                } else if (member.status === 'Closed') {
+                    resultTheme = 'account-closed';
+                    badgeClass = 'status-closed';
+                    icon = '✖';
+                    actionBtnHtml = `
+                        <button disabled style="background: #64748b; color: #cbd5e1; cursor: not-allowed;">
+                            Account Closed (Read-Only)
+                        </button>
+                    `;
+                } else {
+                    resultTheme = 'account-active';
+                    badgeClass = 'status-active';
+                    icon = '●';
+                    actionBtnHtml = `
+                        <button onclick="triggerHumanEscalation('${memberId}')" style="background: #dc2626; color: white; font-weight: 600;">
+                            Freeze Account (Policy Gate)
+                        </button>
+                    `;
+                }
+
+                const statusBadge = `<span class="status-badge ${badgeClass}">${icon} ${member.status}</span>`;
+
+                const html = `
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px solid rgba(0,0,0,0.08); padding-bottom: 8px;">
+                        <h3 style="margin: 0;">Account Management Portal</h3>
+                        ${statusBadge}
+                    </div>
+                    <p style="margin: 8px 0;"><strong>Member:</strong> ${member.name} (<code>${memberId}</code>)</p>
+                    <p style="margin: 8px 0;"><strong>Account Status:</strong> ${statusBadge}</p>
+                    <p style="margin: 8px 0;"><strong>Current Balance:</strong> <span style="font-size: 16px; font-weight: bold;">$${member.balance.toFixed(2)}</span></p>
+                    <div style="margin-top: 18px; display: flex; gap: 8px; flex-wrap: wrap;">
+                        ${actionBtnHtml}
                         <button onclick="alert('Update Information simulated')">Update Information</button>
-                        <button onclick="alert('Transaction History: No anomalies detected')">View Transaction History</button>
+                        <button onclick="alert('Transaction History: 14 recent entries verified')">View Transaction History</button>
                     </div>
                 `;
-                showResult(resultDiv, 'success', html);
+                showResult(resultDiv, resultTheme, html);
             } else {
-                showResult(resultDiv, 'error', 'Member not found');
+                showResult(resultDiv, 'error', 'Member not found. Please verify the member ID.');
             }
+        }
+
+        function clearAccountMgmt() {
+            document.getElementById('account-mgmt-id').value = '';
+            clearResults();
         }
         
         let activeEscalationMemberId = null;
@@ -554,28 +656,26 @@
                 member.status = member.status === 'Frozen' ? 'Active' : 'Frozen';
             }
             closeEscalationModal();
+            manageAccount();
+            
             const resultDiv = document.getElementById('account-result');
             const newStatus = member ? member.status : 'Frozen';
             const statusColor = newStatus === 'Frozen' ? '#ef4444' : '#22c55e';
             
-            showResult(resultDiv, 'success', `
-                <h3>Account Management — Status Updated</h3>
-                <p><strong>Member:</strong> ${member.name} (${activeEscalationMemberId})</p>
-                <p><strong>Status:</strong> <span style="color: ${statusColor}; font-weight: bold;">${member.status}</span></p>
-                <p><strong>Current Balance:</strong> $${member.balance.toFixed(2)}</p>
-                <div style="margin-top: 15px;">
-                    <button onclick="triggerHumanEscalation('${activeEscalationMemberId}')" style="background: ${newStatus === 'Frozen' ? '#16a34a' : '#dc2626'}; color: white; font-weight: 600;">
-                        ${newStatus === 'Frozen' ? 'Unfreeze Account (Policy Gate)' : 'Freeze Account (Policy Gate)'}
-                    </button>
-                    <button onclick="alert('Update Information simulated')">Update Information</button>
-                    <button onclick="alert('Transaction History: No anomalies detected')">View Transaction History</button>
-                </div>
-                <div style="margin-top: 16px; padding: 12px; background: rgba(16, 185, 129, 0.15); border-left: 4px solid #10b981; border-radius: 6px; font-size: 13px; line-height: 1.6;">
-                    <strong>🛡️ Section 3.6 Human Action Logged in Audit Trail:</strong><br>
-                    Staff Operator (ID: <code>OP-8492</code>) authorized ledger status transition to <strong style="color: ${statusColor}">${newStatus}</strong>.<br>
-                    Control state transitioned: <code>HUMAN_CONTROL</code> ➔ <code>AUTOMATION</code>.
-                </div>
-            `);
+            const auditDiv = document.createElement('div');
+            auditDiv.style.marginTop = '16px';
+            auditDiv.style.padding = '12px';
+            auditDiv.style.background = 'rgba(16, 185, 129, 0.15)';
+            auditDiv.style.borderLeft = '4px solid #10b981';
+            auditDiv.style.borderRadius = '6px';
+            auditDiv.style.fontSize = '13px';
+            auditDiv.style.lineHeight = '1.6';
+            auditDiv.innerHTML = `
+                <strong>🛡️ Section 3.6 Human Action Logged in Audit Trail:</strong><br>
+                Staff Operator (ID: <code>OP-8492</code>) authorized ledger status transition to <strong style="color: ${statusColor}">${newStatus}</strong>.<br>
+                Control state transitioned: <code>HUMAN_CONTROL</code> ➔ <code>AUTOMATION</code>.
+            `;
+            resultDiv.appendChild(auditDiv);
         }
         
         function showResult(element, type, message) {
