@@ -81,13 +81,32 @@ stateDiagram-v2
 
 The built-in mock database provides deterministic test vectors for automated replay verification:
 
-| Member ID | Account Holder | Account Type | Balance | Account Status | Expected Execution Path |
+### 4.1 Workflow 1: Member Lookup Test Vectors
+
+| Member ID | Account Holder | Account Type | Balance | Account Status | Expected Execution Path / UI Assertion |
 | :---: | :--- | :---: | :---: | :---: | :--- |
-| **`12345`** | John Smith | Savings | `$5,432.50` | `Active` | **Primary Happy Path**: All checkpoints pass; extracts balance & status. |
-| **`67890`** | Jane Johnson | Checking | `$12,500.00` | `Active` | **High Balance Test**: Multi-parameter verification vector. |
-| **`11111`** | Bob Williams | Savings | `$890.25` | `Frozen` | **Status Branching**: Tests downstream agent decision logic on frozen state. |
-| **`22222`** | Alice Brown | Checking | `$0.00` | `Closed` | **Zero-Balance Vector**: Validates numerical boundary conditions. |
-| **`99999`** | *None* | *None* | *N/A* | *Non-existent* | **Business Outcome Handler**: Matches `member_not_found` error handler. |
+| **`12345`** | John Smith | Savings | `$5,432.50` | `Active` | **Primary Happy Path**: Renders green table; extracts balance & status. |
+| **`67890`** | Jane Johnson | Checking | `$12,500.00` | `Active` | **High Balance Test**: Renders green table; multi-parameter verification. |
+| **`11111`** | Bob Williams | Savings | `$890.25` | `Frozen` | **Status Branching**: Demonstrates retrieval of compliance-locked account. |
+| **`22222`** | Alice Brown | Checking | `$0.00` | `Closed` | **Zero-Balance Vector**: Validates numerical edge condition ($0.00). |
+| **`99999`** | *None* | *None* | *N/A* | *Non-existent* | **Business Error Handler**: Red banner *"Member not found..."* |
+| *(empty)* | *None* | *None* | *N/A* | *Validation* | **Validation Error**: Red banner *"Please enter a member ID"*. |
+
+---
+
+### 4.2 Workflow 2: Transfer Funds Test Scenarios
+
+The Transfer Funds workflow tests asynchronous state machines, business compliance guardrails, input validations, and cross-workflow balance persistence:
+
+| Scenario # | Test Case / Intent | From Account | To Account | Amount | Expected UI Response & Timing | Underlying Architectural Assertion |
+| :---: | :--- | :---: | :---: | :---: | :--- | :--- |
+| **TF-01** | **Happy Path Transfer** *(Core Banking)* | `12345` | `67890` | `250.00` | **Phase 1 (0–1.5s):** Blue info banner *"Processing transfer..."*<br>**Phase 2 (1.5s+):** Green success card with `TXN<timestamp>` hash and member labels.<br>*(In-memory balance updates: 12345 becomes $5,182.50)* | **Asynchronous Checkpoint Assertion:** Replay engine waits for DOM state transition from `info` to `success` and regex-matches `TXN` prefix. |
+| **TF-02** | **Frozen Account Guardrail** *(Compliance)* | `11111` | `67890` | `100.00` | **Instant Red Error:** *"Transfer Failed: Source account 11111 (Bob Williams) is Frozen. Fund transfers are restricted by compliance."* | **Business Outcome vs Crash:** Engine records `account_frozen` business outcome; verifies funds cannot leave compliance-locked accounts. |
+| **TF-03** | **Closed Account Guardrail** *(Lifecycle)* | `22222` | `67890` | `50.00` | **Instant Red Error:** *"Transfer Failed: Source account 22222 (Alice Brown) is Closed. No transactions permitted."* | **Account Lifecycle Integrity:** Blocks transfers on zero-balance closed ledger accounts. |
+| **TF-04** | **Insufficient Funds** *(Ledger Limit)* | `12345` | `67890` | `10000.00` | **Instant Red Error:** *"Transfer Failed: Insufficient funds in account 12345. Available balance: $5,432.50."* | **Overdraft Guardrail:** Replay engine detects `insufficient_funds` without crashing; handles business exception gracefully. |
+| **TF-05** | **Zero / Negative Value** *(Input Validation)* | `12345` | `67890` | `0` or `-50` | **Instant Red Error:** *"Amount must be greater than 0"* | **Input Boundary Assertion:** Handled by `invalid_amount` error handler. |
+| **TF-06** | **Missing Fields Validation** *(Form Integrity)* | *(empty)* | `67890` | `100.00` | **Instant Red Error:** *"Please fill in all fields"* | **Form Completeness Assertion:** Handled by `validation_error` error handler. |
+| **TF-07** | **Arbitrary Account Transfer** *(Generic Routing)* | `ACCT-900` | `ACCT-400` | `75.00` | **Phase 1:** Blue info banner.<br>**Phase 2:** Green success card with `TXN<timestamp>`. | **External Clearing Routing:** Validates that non-mock external accounts route cleanly through standard rails. |
 
 ---
 

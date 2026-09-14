@@ -180,6 +180,18 @@ def create_transfer_artifact() -> AutomationArtifact:
             description="Handle invalid transfer amount"
         ),
         ErrorHandler(
+            error_type=ErrorType.BUSINESS_OUTCOME,
+            condition={"text_contains": "is Frozen"},
+            outcome="account_frozen",
+            description="Handle transfer attempted from frozen account"
+        ),
+        ErrorHandler(
+            error_type=ErrorType.BUSINESS_OUTCOME,
+            condition={"text_contains": "Insufficient funds"},
+            outcome="insufficient_funds",
+            description="Handle transfer exceeding available account balance"
+        ),
+        ErrorHandler(
             error_type=ErrorType.ELEMENT_NOT_FOUND,
             fallback_strategy="text_content_match",
             description="Fallback to text content matching"

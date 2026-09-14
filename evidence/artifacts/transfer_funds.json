@@ -1,12 +1,16 @@
 {
   "metadata": {
     "version": "1.0",
-    "created_at": "2026-09-13T00:19:19.427737",
+    "created_at": "2026-09-14T20:17:09.943419",
+    "updated_at": null,
     "target_app": "http://localhost:8080",
     "capability_name": "transfer_funds",
     "description": "Transfer funds between accounts with validation and confirmation",
     "tenant_id": null,
-    "app_version": null
+    "app_version": null,
+    "author": null,
+    "tags": [],
+    "confidence_score": null
   },
   "parameters": {
     "from_account": {
@@ -211,6 +215,24 @@
         "text_contains": "Amount must be greater than 0"
       },
       "description": "Handle invalid transfer amount"
+    },
+    {
+      "error_type": "business_outcome",
+      "fallback_strategy": null,
+      "outcome": "account_frozen",
+      "condition": {
+        "text_contains": "is Frozen"
+      },
+      "description": "Handle transfer attempted from frozen account"
+    },
+    {
+      "error_type": "business_outcome",
+      "fallback_strategy": null,
+      "outcome": "insufficient_funds",
+      "condition": {
+        "text_contains": "Insufficient funds"
+      },
+      "description": "Handle transfer exceeding available account balance"
     },
     {
       "error_type": "element_not_found",

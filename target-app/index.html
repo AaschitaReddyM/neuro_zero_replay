@@ -378,10 +378,11 @@
         function transferFunds() {
             const fromAccount = document.getElementById('from-account').value.trim();
             const toAccount = document.getElementById('to-account').value.trim();
-            const amount = parseFloat(document.getElementById('amount').value);
+            const amountInput = document.getElementById('amount').value.trim();
+            const amount = parseFloat(amountInput);
             const resultDiv = document.getElementById('transfer-result');
             
-            if (!fromAccount || !toAccount || !amount) {
+            if (!fromAccount || !toAccount || amountInput === '' || isNaN(amount)) {
                 showResult(resultDiv, 'error', 'Please fill in all fields');
                 return;
             }
@@ -390,16 +391,44 @@
                 showResult(resultDiv, 'error', 'Amount must be greater than 0');
                 return;
             }
+
+            // Enterprise Core Banking Guardrails: Check source account status & balance
+            const sourceMember = members[fromAccount];
+            if (sourceMember) {
+                if (sourceMember.status === 'Frozen') {
+                    showResult(resultDiv, 'error', `Transfer Failed: Source account ${fromAccount} (${sourceMember.name}) is Frozen. Fund transfers are restricted by compliance.`);
+                    return;
+                }
+                if (sourceMember.status === 'Closed') {
+                    showResult(resultDiv, 'error', `Transfer Failed: Source account ${fromAccount} (${sourceMember.name}) is Closed. No transactions permitted.`);
+                    return;
+                }
+                if (amount > sourceMember.balance) {
+                    showResult(resultDiv, 'error', `Transfer Failed: Insufficient funds in account ${fromAccount}. Available balance: $${sourceMember.balance.toFixed(2)}.`);
+                    return;
+                }
+            }
             
-            // Simulate transfer processing
+            // Simulate transfer processing with async latency
             showResult(resultDiv, 'info', 'Processing transfer...');
             
             setTimeout(() => {
-                // Simulate success (in real system, this would validate accounts)
+                // Update in-memory balances for live state consistency
+                if (sourceMember) {
+                    sourceMember.balance -= amount;
+                }
+                const destMember = members[toAccount];
+                if (destMember) {
+                    destMember.balance += amount;
+                }
+
+                const fromLabel = sourceMember ? `${fromAccount} (${sourceMember.name})` : fromAccount;
+                const toLabel = destMember ? `${toAccount} (${destMember.name})` : toAccount;
+
                 const html = `
                     <h3>Transfer Completed</h3>
-                    <p><strong>From Account:</strong> ${fromAccount}</p>
-                    <p><strong>To Account:</strong> ${toAccount}</p>
+                    <p><strong>From Account:</strong> ${fromLabel}</p>
+                    <p><strong>To Account:</strong> ${toLabel}</p>
                     <p><strong>Amount:</strong> $${amount.toFixed(2)}</p>
                     <p><strong>Confirmation Number:</strong> TXN${Date.now()}</p>
                 `;
