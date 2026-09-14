@@ -608,14 +608,142 @@
                     <p style="margin: 8px 0;"><strong>Current Balance:</strong> <span style="font-size: 16px; font-weight: bold;">$${member.balance.toFixed(2)}</span></p>
                     <div style="margin-top: 18px; display: flex; gap: 8px; flex-wrap: wrap;">
                         ${actionBtnHtml}
-                        <button onclick="alert('Update Information simulated')">Update Information</button>
-                        <button onclick="alert('Transaction History: 14 recent entries verified')">View Transaction History</button>
+                        <button onclick="toggleUpdateInfo('${memberId}')">Update Information</button>
+                        <button onclick="toggleTransactionHistory('${memberId}')">View Transaction History</button>
                     </div>
+                    <div id="edit-container" style="display: none;"></div>
+                    <div id="history-container" style="display: none;"></div>
                 `;
                 showResult(resultDiv, resultTheme, html);
             } else {
                 showResult(resultDiv, 'error', 'Member not found. Please verify the member ID.');
             }
+        }
+
+        const mockTransactions = {
+            '12345': [
+                { date: '2026-09-12', desc: 'Enterprise Payroll Direct Deposit', amount: '+$3,500.00', balance: '$5,432.50', status: 'Cleared' },
+                { date: '2026-09-08', desc: 'ATM Cash Withdrawal - Main Branch', amount: '-$200.00', balance: '$1,932.50', status: 'Cleared' },
+                { date: '2026-09-05', desc: 'Utility Autopay - Clean Energy Co', amount: '-$115.30', balance: '$2,132.50', status: 'Cleared' }
+            ],
+            '67890': [
+                { date: '2026-09-11', desc: 'Client Inward Wire Transfer', amount: '+$10,000.00', balance: '$12,500.00', status: 'Cleared' },
+                { date: '2026-09-04', desc: 'Quarterly Investment Dividend', amount: '+$450.00', balance: '$2,500.00', status: 'Cleared' }
+            ],
+            '11111': [
+                { date: '2026-01-10', desc: 'Compliance Freeze Hold Applied', amount: '$0.00', balance: '$890.25', status: 'Hold' },
+                { date: '2026-01-08', desc: 'Suspicious Wire Debit Flagged', amount: '-$500.00', balance: '$890.25', status: 'Flagged' }
+            ],
+            '22222': [
+                { date: '2026-08-01', desc: 'Final Account Closure Settlement', amount: '-$1,420.00', balance: '$0.00', status: 'Closed' }
+            ]
+        };
+
+        function toggleTransactionHistory(memberId) {
+            const container = document.getElementById('history-container');
+            if (!container) return;
+            if (container.style.display === 'block') {
+                container.style.display = 'none';
+                return;
+            }
+            const txns = mockTransactions[memberId] || [
+                { date: '2026-09-10', desc: 'Standard Account Transaction', amount: '+$100.00', balance: '$100.00', status: 'Cleared' }
+            ];
+            let rowsHtml = '';
+            txns.forEach(t => {
+                const isCredit = t.amount.startsWith('+');
+                const amtColor = isCredit ? '#16a34a' : (t.amount.startsWith('-') ? '#dc2626' : '#64748b');
+                rowsHtml += `
+                    <tr>
+                        <td><code>${t.date}</code></td>
+                        <td>${t.desc}</td>
+                        <td style="color: ${amtColor}; font-weight: bold;">${t.amount}</td>
+                        <td><strong>${t.balance}</strong></td>
+                        <td><span style="font-size: 11px; padding: 2px 8px; border-radius: 4px; background: #e2e8f0; font-weight: 600;">${t.status}</span></td>
+                    </tr>
+                `;
+            });
+            container.innerHTML = `
+                <div style="margin-top: 16px; border-top: 1px solid rgba(0,0,0,0.1); padding-top: 14px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <h4 style="margin: 0;">Verified Transaction Ledger</h4>
+                        <button onclick="document.getElementById('history-container').style.display='none'" style="padding: 4px 10px; font-size: 11px;" class="secondary">Hide</button>
+                    </div>
+                    <table class="legacy-table" style="font-size: 12px;">
+                        <thead>
+                            <tr style="background: #f1f5f9;">
+                                <th>Date</th>
+                                <th>Description</th>
+                                <th>Amount</th>
+                                <th>Ledger Balance</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${rowsHtml}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+            container.style.display = 'block';
+            const editContainer = document.getElementById('edit-container');
+            if (editContainer) editContainer.style.display = 'none';
+        }
+
+        function toggleUpdateInfo(memberId) {
+            const container = document.getElementById('edit-container');
+            if (!container) return;
+            if (container.style.display === 'block') {
+                container.style.display = 'none';
+                return;
+            }
+            const member = members[memberId];
+            if (!member) return;
+            container.innerHTML = `
+                <div style="margin-top: 16px; border-top: 1px solid rgba(0,0,0,0.1); padding-top: 14px;">
+                    <h4 style="margin: 0 0 10px 0;">Update Member Profile</h4>
+                    <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 10px;">
+                        <div style="flex: 1; min-width: 180px;">
+                            <label style="font-size: 12px; font-weight: 600;">Member Name:</label>
+                            <input type="text" id="edit-member-name" value="${member.name}" style="width: 100%; padding: 6px 10px; margin-top: 4px; box-sizing: border-box;">
+                        </div>
+                        <div style="flex: 1; min-width: 140px;">
+                            <label style="font-size: 12px; font-weight: 600;">Account Type:</label>
+                            <select id="edit-member-type" style="width: 100%; padding: 6px 10px; margin-top: 4px; box-sizing: border-box;">
+                                <option value="Savings" ${member.accountType === 'Savings' ? 'selected' : ''}>Savings</option>
+                                <option value="Checking" ${member.accountType === 'Checking' ? 'selected' : ''}>Checking</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 8px;">
+                        <button onclick="saveMemberProfile('${memberId}')" style="background: #0284c7; color: white; padding: 6px 14px; font-size: 12px;">Save Changes</button>
+                        <button onclick="document.getElementById('edit-container').style.display='none'" class="secondary" style="padding: 6px 14px; font-size: 12px;">Cancel</button>
+                    </div>
+                </div>
+            `;
+            container.style.display = 'block';
+            const histContainer = document.getElementById('history-container');
+            if (histContainer) histContainer.style.display = 'none';
+        }
+
+        function saveMemberProfile(memberId) {
+            const member = members[memberId];
+            if (!member) return;
+            const newName = document.getElementById('edit-member-name').value.trim();
+            const newType = document.getElementById('edit-member-type').value;
+            if (newName) member.name = newName;
+            if (newType) member.accountType = newType;
+            manageAccount();
+            const resultDiv = document.getElementById('account-result');
+            const alertBox = document.createElement('div');
+            alertBox.style.marginTop = '12px';
+            alertBox.style.padding = '8px 12px';
+            alertBox.style.background = 'rgba(16, 185, 129, 0.15)';
+            alertBox.style.borderLeft = '4px solid #10b981';
+            alertBox.style.borderRadius = '4px';
+            alertBox.style.fontSize = '12px';
+            alertBox.innerHTML = `<strong>✅ Profile Updated:</strong> Member record for <code>${memberId}</code> updated successfully in core database.`;
+            resultDiv.appendChild(alertBox);
         }
 
         function clearAccountMgmt() {
