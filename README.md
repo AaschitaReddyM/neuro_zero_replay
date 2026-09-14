@@ -5,7 +5,7 @@
 <h1 align="center">NeuroZero Replay</h1>
 
 <p align="center">
-  <strong>Neural Discovery • Zero-LLM Deterministic Replay • Enterprise FinTech Computer-Use Automation</strong>
+  <strong>Neural Discovery & Zero-LLM Deterministic Replay • Enterprise FinTech Computer-Use Automation</strong>
 </p>
 
 <p align="center">
