@@ -10,11 +10,11 @@
 
 <p align="center">
   <a href="https://github.com/AaschitaReddyM/neuro_zero_replay/actions"><img src="https://github.com/AaschitaReddyM/neuro_zero_replay/actions/workflows/ci.yml/badge.svg" alt="CI Pipeline" /></a>
-  <img src="https://img.shields.io/badge/Python-3.10%20%7C%203.11-blue?style=flat-square&logo=python" alt="Python Version" />
-  <img src="https://img.shields.io/badge/Playwright-Automated-green?style=flat-square" alt="Playwright" />
-  <img src="https://img.shields.io/badge/Replay-Zero--LLM%20Deterministic-purple?style=flat-square" alt="Zero-LLM Replay" />
-  <img src="https://img.shields.io/badge/Domain-FinTech%20%26%20Banking-0052cc?style=flat-square" alt="FinTech Banking" />
-  <img src="https://img.shields.io/badge/License-MIT-yellow?style=flat-square" alt="License" />
+  <a href="https://www.python.org/downloads/release/python-3110/"><img src="https://img.shields.io/badge/Python-3.10%20%7C%203.11-blue?style=flat-square&logo=python" alt="Python Version" /></a>
+  <a href="https://playwright.dev/python/"><img src="https://img.shields.io/badge/Playwright-Automated-green?style=flat-square" alt="Playwright" /></a>
+  <a href="#system-architecture-flow"><img src="https://img.shields.io/badge/Replay-Zero--LLM%20Deterministic-purple?style=flat-square" alt="Zero-LLM Replay" /></a>
+  <a href="TARGET_APPLICATION_GUIDE.md"><img src="https://img.shields.io/badge/Domain-FinTech%20%26%20Banking-0052cc?style=flat-square" alt="FinTech Banking" /></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-yellow?style=flat-square" alt="License" /></a>
 </p>
 
 A production-ready computer-use automation platform that enables LLM-driven UI discovery with zero-LLM deterministic replay capabilities, purpose-built for financial workflows (member lookup, funds transfer, and account management).
