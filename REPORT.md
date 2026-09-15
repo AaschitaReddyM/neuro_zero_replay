@@ -296,22 +296,44 @@ All data structures, logging streams, and error records are processed by `redact
 
 ---
 
-## 7. Cuts
+## 7. Cuts — What Was Deliberately Left Out & What to Build Next
 
-To preserve engineering focus and adhere to the brief's evaluation criteria (depth over breadth; prioritizing core execution over speculative infrastructure), several non-essential components were deliberately cut:
+To preserve engineering focus and adhere to the brief's evaluation criteria (depth over breadth; prioritizing core execution over speculative infrastructure), several non-essential components were deliberately cut, while concrete paths were defined for future production iterations.
+
+### What Was Deliberately Left Out
 
 1. **Operator Console UI**:
-   - *What was cut*: A full WebSocket-driven web dashboard for human operators.
-   - *What was built*: A robust state machine, structured JSON intervention records (`evidence/interventions/`), and file-based resume signaling (`.resume`) that integrates directly with any external console.
+   - *What was cut*: A full WebSocket-driven web dashboard or co-browsing GUI for human operators.
+   - *What was built*: A robust state machine, structured JSON intervention records (`evidence/interventions/`), and atomic file-based resume signaling (`.resume`) that integrates directly with any external console or ticketing webhook.
 2. **Desktop OS Automation**:
    - *What was cut*: Native OS GUI drivers (e.g. Windows pywinauto or macOS Accessibility APIs).
-   - *What was built*: A web-focused Playwright driver using accessibility tree concepts (`get_by_role`, `get_by_label`) that can be extended to desktop APIs in future work.
+   - *What was built*: A web-focused Playwright driver utilizing accessibility tree concepts (`get_by_role`, `get_by_label`) that directly translates to desktop accessibility primitives without architectural rework.
 3. **Multi-Tenant Automated Canonicalization**:
-   - *What was cut*: Autonomous clustering algorithms to merge artifacts across 50+ tenant variants.
-   - *What was built*: Parameterized contracts (`{{member_id}}`), dynamic extraction targets, and tenant metadata fields that support manual and rule-based cross-tenant reuse.
+   - *What was cut*: Autonomous clustering algorithms to automatically infer and merge artifacts across dozens of tenant variants.
+   - *What was built*: Parameterized contracts (`{{member_id}}`), dynamic extraction targets, and tenant metadata fields that support rule-based and manual cross-tenant specialization.
 4. **Mock Discovery Elimination**:
    - *What was cut*: All legacy mock discovery scripts (`mock_discovery*.py`).
    - *What was built*: Authentic live discovery in `main.py discovery` powered by real asynchronous Google Gemini REST integration, verified in 4.52 seconds against `http://localhost:8080`.
 5. **Auxiliary Deployment & Cataloging Infrastructure**:
    - *What was cut*: Auxiliary deployment packaging (`Dockerfile`, `docker-compose.yml`, `DEPLOYMENT.md`, `.github/workflows/deploy-pages.yml`), compliance checklists, and mock marketplace cataloging (`src/artifact/marketplace.py`, `src/artifact/metrics.py`).
    - *Why cut*: Out-of-scope for core computer-use automation. The brief specifically penalizes speculative packaging and rewards depth in real browser interaction, deterministic replay, safety boundaries, and human escalation.
+
+### What We'd Build Next (Production Roadmap)
+
+With additional engineering investment, the next highest-impact capabilities to introduce are:
+
+1. **CDP-Level Action Trace Streaming**:
+   - *Objective*: Replace the current state-differential capture (`url_before`, `url_after`, `dom_changed`) with granular event-level recording during operator intervention.
+   - *Design*: Attach a Chrome DevTools Protocol (CDP) session listener (`Input.dispatchMouseEvent`, `Input.dispatchKeyEvent`, `Runtime.addBinding`) inside `wait_for_resume` to record raw human interactions directly into synthesizable Playwright action steps.
+2. **Cryptographic Authorization Tokens**:
+   - *Objective*: Enforce non-repudiable policy checks for high-risk operations in multi-tenant environments.
+   - *Design*: Introduce asymmetric signature verification (e.g. Ed25519 or RS256 JWT) on `RunOptions.approval_token`. High-risk steps (e.g., fund transfers, account freezing) would require a signed token issued by an enterprise authorization gateway before execution.
+3. **Automated Visual UI Masking**:
+   - *Objective*: Prevent visual PII exposure in failure and escalation screenshots.
+   - *Design*: Implement client-side bounding-box masking using DOM element positions or an on-device OCR model prior to saving PNG files in `logs/` and `evidence/interventions/`, ensuring full HIPAA/GLBA visual compliance.
+4. **Assisted Step-Level Fallback (Bounded LLM Recovery)**:
+   - *Objective*: Mitigate runtime breakage caused by minor application redesigns without re-running full multi-step discovery.
+   - *Design*: When a locator fails across all deterministic strategies, invoke a bounded LLM recovery call scoped strictly to the current step and target DOM subtree, gated by policy and logged to evidence.
+5. **Cross-Tenant Artifact Overlays**:
+   - *Objective*: Eliminate script duplication across institutions running the same vendor application with slight branding or layout variations.
+   - *Design*: Implement an inheritance hierarchy where tenant-specific artifacts declare a `base_artifact` and override only divergent step locators or timing parameters.
