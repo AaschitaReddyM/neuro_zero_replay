@@ -441,43 +441,18 @@ class ReplayEngine:
                 return None
             page = self.browser.page
             
-            # Check BusinessOutcomeRules if defined on artifact
+            # Check BusinessOutcomeRules defined on artifact (strictly scoped to rule.selector)
             rules = getattr(artifact, "business_outcome_rules", [])
             for rule in rules:
-                if rule.text_contains:
-                    candidates = [rule.selector] if rule.selector else ["#lookup-result", "#transfer-result", "#account-result", ".result", "body"]
-                    for selector in candidates:
-                        try:
-                            loc = page.locator(selector)
-                            if await loc.count() > 0 and await loc.first.is_visible():
-                                txt = await loc.first.inner_text()
-                                if rule.text_contains.lower() in txt.lower():
-                                    return {"outcome": rule.outcome, "evidence_text": txt.strip()}
-                        except Exception:
-                            pass
-
-            # Check legacy error_handlers with error_type == BUSINESS_OUTCOME
-            for handler in artifact.error_handlers:
-                if handler.error_type == ErrorType.BUSINESS_OUTCOME and handler.outcome:
-                    expected_text = None
-                    if handler.condition and "text_contains" in handler.condition:
-                        expected_text = handler.condition["text_contains"]
-                    
-                    if expected_text:
-                        for selector in ["#lookup-result", "#transfer-result", "#account-result", ".result", "body"]:
-                            try:
-                                loc = page.locator(selector)
-                                if await loc.count() > 0:
-                                    is_vis = await loc.first.is_visible()
-                                    if is_vis or selector == "body":
-                                        content = await loc.first.inner_text()
-                                        if expected_text.lower() in content.lower():
-                                            return {
-                                                "outcome": handler.outcome,
-                                                "evidence_text": content.strip()
-                                            }
-                            except Exception:
-                                continue
+                if rule.selector and rule.text_contains:
+                    try:
+                        loc = page.locator(rule.selector)
+                        if await loc.count() > 0 and await loc.first.is_visible():
+                            txt = await loc.first.inner_text()
+                            if rule.text_contains.lower() in txt.lower():
+                                return {"outcome": rule.outcome, "evidence_text": txt.strip()}
+                    except Exception:
+                        pass
         except Exception as e:
             logger.warning("Error detecting page business outcome", error=str(e))
         return None

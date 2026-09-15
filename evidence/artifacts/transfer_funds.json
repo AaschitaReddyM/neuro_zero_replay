@@ -199,42 +199,6 @@
   },
   "error_handlers": [
     {
-      "error_type": "business_outcome",
-      "fallback_strategy": null,
-      "outcome": "validation_error",
-      "condition": {
-        "text_contains": "Please fill in all fields"
-      },
-      "description": "Handle missing required fields"
-    },
-    {
-      "error_type": "business_outcome",
-      "fallback_strategy": null,
-      "outcome": "invalid_amount",
-      "condition": {
-        "text_contains": "Amount must be greater than 0"
-      },
-      "description": "Handle invalid transfer amount"
-    },
-    {
-      "error_type": "business_outcome",
-      "fallback_strategy": null,
-      "outcome": "account_frozen",
-      "condition": {
-        "text_contains": "is Frozen"
-      },
-      "description": "Handle transfer attempted from frozen account"
-    },
-    {
-      "error_type": "business_outcome",
-      "fallback_strategy": null,
-      "outcome": "insufficient_funds",
-      "condition": {
-        "text_contains": "Insufficient funds"
-      },
-      "description": "Handle transfer exceeding available account balance"
-    },
-    {
       "error_type": "element_not_found",
       "fallback_strategy": "text_content_match",
       "outcome": null,
@@ -247,6 +211,32 @@
       "outcome": null,
       "condition": null,
       "description": "Handle slow transfer processing"
+    }
+  ],
+  "business_outcome_rules": [
+    {
+      "outcome": "validation_error",
+      "selector": "#transfer-result",
+      "text_contains": "Please fill in all fields",
+      "description": "Handle missing required fields"
+    },
+    {
+      "outcome": "invalid_amount",
+      "selector": "#transfer-result",
+      "text_contains": "Amount must be greater than 0",
+      "description": "Handle invalid transfer amount"
+    },
+    {
+      "outcome": "account_frozen",
+      "selector": "#transfer-result",
+      "text_contains": "is Frozen",
+      "description": "Handle transfer attempted from frozen account"
+    },
+    {
+      "outcome": "insufficient_funds",
+      "selector": "#transfer-result",
+      "text_contains": "Insufficient funds",
+      "description": "Handle transfer exceeding available account balance"
     }
   ]
 }

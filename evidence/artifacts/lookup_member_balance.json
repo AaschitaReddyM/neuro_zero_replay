@@ -153,9 +153,9 @@
   "business_outcome_rules": [
     {
       "outcome": "member_not_found",
-      "selector": null,
+      "selector": "#lookup-result",
       "text_contains": "Member not found",
-      "description": null
+      "description": "Member not found in system"
     }
   ]
 }

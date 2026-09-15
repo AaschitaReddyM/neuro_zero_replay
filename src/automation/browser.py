@@ -264,32 +264,17 @@ class BrowserAutomation:
         """Check if a checkpoint condition is met."""
         element = await self.find_element(target)
         if not element:
-            # Fallback: check if the expected text is visible in common result containers
-            if text_contains:
+            if text_contains and self.page:
                 try:
-                    for sel in ["#lookup-result", "#transfer-result", "#account-result", ".result"]:
-                        loc = self.page.locator(sel)
-                        if await loc.count() > 0 and await loc.first.is_visible():
-                            txt = await loc.first.inner_text()
-                            if text_contains.lower() in txt.lower():
-                                return True
+                    text_loc = self.page.get_by_text(text_contains)
+                    if await text_loc.count() > 0 and await text_loc.first.is_visible():
+                        return True
                 except Exception:
                     pass
             return False
             
         if text_contains:
             text = await element.inner_text()
-            if text_contains.lower() in text.lower():
-                return True
-            # Check surrounding result card if text is inside the card
-            try:
-                card = self.page.locator("#lookup-result, #transfer-result, #account-result, .result")
-                if await card.count() > 0 and await card.first.is_visible():
-                    card_txt = await card.first.inner_text()
-                    if text_contains.lower() in card_txt.lower():
-                        return True
-            except Exception:
-                pass
-            return False
+            return text_contains.lower() in text.lower()
             
         return await element.is_visible()

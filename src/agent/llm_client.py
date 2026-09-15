@@ -49,8 +49,8 @@ Available actions:
 3. type: Fill text into an input field.
    {"action_type": "type", "target_role": "textbox", "target_name": "Member ID", "value": "12345", "reasoning": "..."}
 
-4. extract: Extract text or data from the result container. Use a selector like '#lookup-result'.
-   {"action_type": "extract", "target_selector": "#lookup-result", "output_key": "account_details", "reasoning": "Extract member account information"}
+4. extract: Extract text or data from the result container. Use a selector like '#result-container'.
+   {"action_type": "extract", "target_selector": "#result-container", "output_key": "result_details", "reasoning": "Extract result information"}
 
 5. wait: Pause for asynchronous UI updates.
    {"action_type": "wait", "value": "1000", "reasoning": "..."}
@@ -59,11 +59,11 @@ Available actions:
    {
      "action_type": "done",
      "reasoning": "Information retrieved successfully",
-     "outputs": {"member_name": "...", "balance": "..."},
+     "outputs": {"item_name": "...", "amount": "..."},
      "checkpoint": {
        "strategy": "semantic_selector",
-       "value": "#lookup-result",
-       "text_contains": "Member Found"
+       "value": "#result-container",
+       "text_contains": "Operation Complete"
      }
    }
 

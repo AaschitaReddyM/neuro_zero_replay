@@ -66,8 +66,8 @@ class ExecutionStatus(str, Enum):
 class BusinessOutcomeRule(BaseModel):
     """Rule to detect a domain business outcome from page-visible state."""
     outcome: str
-    selector: Optional[str] = None
-    text_contains: Optional[str] = None
+    selector: str
+    text_contains: str
     description: Optional[str] = None
 
 

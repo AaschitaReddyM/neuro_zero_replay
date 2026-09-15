@@ -137,8 +137,27 @@ class AgentOrchestrator:
                 # Check for explicit done action
                 if action_type_str == "done":
                     checkpoint_data = decision.get("checkpoint", {})
-                    selector = checkpoint_data.get("value") or checkpoint_data.get("selector") or "#lookup-result"
+                    selector = checkpoint_data.get("value") or checkpoint_data.get("selector")
                     text_contains = checkpoint_data.get("text_contains", "")
+                    
+                    if not selector or not text_contains:
+                        # Ask once for clarification if done action is incomplete
+                        logger.warning("Done action missing checkpoint selector or text_contains, asking once for clarification")
+                        try:
+                            decision = await self.llm_client.decide_next_action(
+                                f"{goal}\n\nERROR: Done action must include 'checkpoint' with 'selector' and 'text_contains', and 'outputs'.",
+                                current_state,
+                                self.action_history
+                            )
+                            checkpoint_data = decision.get("checkpoint", {})
+                            selector = checkpoint_data.get("value") or checkpoint_data.get("selector")
+                            text_contains = checkpoint_data.get("text_contains", "")
+                        except Exception as e:
+                            logger.error("Clarification failed", error=str(e))
+                            
+                    if not selector or not text_contains:
+                        logger.error("Incomplete done action from LLM")
+                        return False, "failure: incomplete done action"
                     
                     verified = False
                     inner_text = ""
@@ -150,26 +169,6 @@ class AgentOrchestrator:
                                 verified = True
                     except Exception:
                         pass
-                        
-                    if not verified:
-                        # Check fallback selectors or page text
-                        for alt_sel in ["#lookup-result", "#transfer-result", "#account-result", ".result", "body"]:
-                            try:
-                                loc = self.browser.page.locator(alt_sel)
-                                if await loc.count() > 0 and await loc.first.is_visible():
-                                    txt = await loc.first.inner_text()
-                                    if text_contains and text_contains.lower() in txt.lower():
-                                        selector = alt_sel
-                                        inner_text = txt
-                                        verified = True
-                                        break
-                                    elif not text_contains and ("found" in txt.lower() or "member" in txt.lower()):
-                                        selector = alt_sel
-                                        inner_text = txt
-                                        verified = True
-                                        break
-                            except Exception:
-                                pass
                                 
                     if verified:
                         logger.info("Goal completion verified via checkpoint", selector=selector, text=text_contains)
@@ -177,40 +176,43 @@ class AgentOrchestrator:
                         
                         # Capture extracted outputs from decision
                         outputs_from_llm = decision.get("outputs", {})
-                        for k, v in outputs_from_llm.items():
-                            self.extracted_outputs[k] = v
-                            
-                        # If no EXTRACT step was recorded, add an EXTRACT step so zero-LLM replay extracts dynamic result text
-                        has_extract_step = any(s.action_type == ActionType.EXTRACT for s in self.recorded_steps)
-                        if not has_extract_step:
-                            extract_step = ActionStep(
-                                step_id=len(self.recorded_steps) + 1,
-                                action_type=ActionType.EXTRACT,
-                                target=TargetLocation(
-                                    strategy=LocationStrategy.SEMANTIC_SELECTOR,
-                                    value=selector if selector != "body" else "#lookup-result"
-                                ),
-                                output_key="account_details",
-                                description=f"Extract outcome details from {selector}",
-                                risk_level=RiskLevel.SAFE
-                            )
-                            self.recorded_steps.append(extract_step)
-                            self.extracted_outputs["account_details"] = inner_text.replace("●", "").strip() if inner_text else "Member Found"
-                            
-                        # If checkpoint text_contains contains dynamic output data (e.g. specific balance or ID), generalize to "Member Found"
-                        chk_text = text_contains
-                        if not chk_text or any(c.isdigit() for c in chk_text) or "$" in chk_text:
-                            chk_text = "Member Found"
-                            
+                        if isinstance(outputs_from_llm, list):
+                            for item in outputs_from_llm:
+                                if isinstance(item, dict):
+                                    k = item.get("key")
+                                    sel = item.get("selector") or selector
+                                    if k:
+                                        try:
+                                            out_loc = self.browser.page.locator(sel)
+                                            if await out_loc.count() > 0 and await out_loc.first.is_visible():
+                                                val = (await out_loc.first.inner_text()).strip()
+                                                self.extracted_outputs[k] = val
+                                                self.recorded_steps.append(ActionStep(
+                                                    step_id=len(self.recorded_steps) + 1,
+                                                    action_type=ActionType.EXTRACT,
+                                                    target=TargetLocation(
+                                                        strategy=LocationStrategy.SEMANTIC_SELECTOR,
+                                                        value=sel
+                                                    ),
+                                                    output_key=k,
+                                                    description=f"Extract {k} from {sel}",
+                                                    risk_level=RiskLevel.SAFE
+                                                ))
+                                        except Exception:
+                                            pass
+                        elif isinstance(outputs_from_llm, dict):
+                            for k, v in outputs_from_llm.items():
+                                self.extracted_outputs[k] = v
+                                
                         self.final_checkpoint = Checkpoint(
                             step_id=len(self.recorded_steps),
                             condition=CheckpointCondition(
                                 type="element_visible",
                                 target=TargetLocation(
                                     strategy=LocationStrategy.SEMANTIC_SELECTOR,
-                                    value=selector if selector != "body" else "#lookup-result"
+                                    value=selector
                                 ),
-                                text_contains=chk_text
+                                text_contains=text_contains
                             ),
                             description=f"Verify {capability_name} interface completion"
                         )
@@ -320,15 +322,6 @@ class AgentOrchestrator:
         # Build target location
         target = self._build_target_from_decision(decision)
         raw_value = decision.get("value")
-        
-        # If EXTRACT targets transient instance text (e.g. specific balance amount), generalize to invariant container
-        if action_type == ActionType.EXTRACT:
-            if target.value and ("$" in target.value or any(c.isdigit() for c in target.value)):
-                target = TargetLocation(
-                    strategy=LocationStrategy.SEMANTIC_SELECTOR,
-                    value="#lookup-result",
-                    fallback_strategies=[LocationStrategy.TEXT_CONTENT]
-                )
         
         # Execute action in browser
         success, result = await self.browser.execute_action(
@@ -461,10 +454,6 @@ class AgentOrchestrator:
                 type=ParameterType.STRING,
                 description=f"Extracted output {out_name}"
             )
-        if not outputs:
-            outputs["member_name"] = OutputDefinition(type=ParameterType.STRING, description="Member name")
-            outputs["balance"] = OutputDefinition(type=ParameterType.STRING, description="Account balance")
-            outputs["status"] = OutputDefinition(type=ParameterType.STRING, description="Account status")
             
         # Build checkpoint
         checkpoint = self.final_checkpoint
@@ -475,8 +464,7 @@ class AgentOrchestrator:
                     step_id=last_step.step_id,
                     condition=CheckpointCondition(
                         type="element_visible",
-                        target=last_step.target,
-                        text_contains="Member Found"
+                        target=last_step.target
                     ),
                     description="Goal completion checkpoint"
                 )
@@ -485,8 +473,7 @@ class AgentOrchestrator:
                     step_id=1,
                     condition=CheckpointCondition(
                         type="element_visible",
-                        target=TargetLocation(strategy=LocationStrategy.SEMANTIC_SELECTOR, value="#lookup-result"),
-                        text_contains="Member Found"
+                        target=TargetLocation(strategy=LocationStrategy.SEMANTIC_SELECTOR, value="body")
                     ),
                     description="Goal completion checkpoint"
                 )
@@ -505,13 +492,7 @@ class AgentOrchestrator:
             )
         ]
         
-        business_outcome_rules = [
-            BusinessOutcomeRule(
-                outcome="member_not_found",
-                target_selector="#lookup-result",
-                text_contains="Member not found"
-            )
-        ]
+        business_outcome_rules = []
         
         return AutomationArtifact(
             metadata=metadata,
