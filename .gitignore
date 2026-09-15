@@ -59,3 +59,6 @@ Thumbs.db
 # Assignment context & prompts (not for public repo)
 context/
 assignment_text.txt
+
+# Local demo scripts
+*.ps1
