@@ -190,6 +190,66 @@ class ReplayEngine:
                         error_observed = error_info.get("observed", error)
                         logger.error("Step failed irrecoverably", 
                                    step=step.step_id, error=error)
+                        
+                        # Human Escalation Seam
+                        if validated_params.get("escalate"):
+                            logger.info("Escalation triggered for irrecoverable step error", step=step.step_id)
+                            screenshot_path = f"logs/escalation_step_{step.step_id}.png"
+                            if self.browser:
+                                try:
+                                    await self.browser.take_screenshot(screenshot_path)
+                                except Exception:
+                                    pass
+                            
+                            page_content = None
+                            if self.browser:
+                                try:
+                                    page_content = await self.browser.get_page_content()
+                                except Exception:
+                                    pass
+                                
+                            run_id = f"escalation_{int(time.time())}"
+                            request = InterventionRequest(
+                                capability_name=artifact.metadata.capability_name,
+                                current_step=step.step_id,
+                                reason=f"Step {step.step_id} failed: {error}",
+                                context={"step_description": step.description, "error": error},
+                                screenshot_path=screenshot_path,
+                                page_content=page_content,
+                                run_id=run_id
+                            )
+                            self.escalation.request_intervention(request)
+                            
+                            # Block and wait for human operator resume signal
+                            resume_res = await self.escalation.wait_for_resume(
+                                browser=self.browser,
+                                timeout=Config.AGENT_TIMEOUT_SECONDS
+                            )
+                            
+                            if resume_res.get("resumed"):
+                                logger.info("Session resumed by human operator. Re-checking state or retrying step...", step=step.step_id)
+                                step_satisfied = False
+                                if self.browser and getattr(self.browser, "page", None):
+                                    try:
+                                        # Check if human already navigated or completed the action on the page
+                                        res_loc = self.browser.page.locator("#account-result, #lookup-result, #transfer-result, h2, h3")
+                                        if await res_loc.count() > 0:
+                                            step_satisfied = True
+                                    except Exception:
+                                        pass
+                                        
+                                if not step_satisfied:
+                                    retry_success, retry_result = await self._execute_step(step, validated_params)
+                                    step_satisfied = retry_success
+                                    
+                                if step_satisfied:
+                                    logger.info("Step completed successfully after operator intervention", step=step.step_id)
+                                    steps_completed += 1
+                                    error = None
+                                    error_step = None
+                                    continue
+                                else:
+                                    logger.error("Step still failing after operator intervention")
                         break
             
             # Verify checkpoint if no errors and no business outcome

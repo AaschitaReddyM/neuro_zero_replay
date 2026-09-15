@@ -9,7 +9,10 @@ load_dotenv()
 class Config:
     """Centralized configuration for the automation system."""
     
-    # OpenAI Configuration
+    # LLM Configuration
+    LLM_PROVIDER: str = os.getenv("LLM_PROVIDER", "gemini")
+    GEMINI_API_KEY: str = os.getenv("GEMINI_API_KEY", "")
+    GEMINI_MODEL: str = os.getenv("GEMINI_MODEL", "gemini-flash-latest")
     OPENAI_API_KEY: str = os.getenv("OPENAI_API_KEY", "")
     OPENAI_MODEL: str = os.getenv("OPENAI_MODEL", "gpt-4o")
     
