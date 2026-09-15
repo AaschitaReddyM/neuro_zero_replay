@@ -145,6 +145,14 @@ class ArtifactMetadata(BaseModel):
     confidence_score: Optional[float] = None  # 0.0 to 1.0
 
 
+class RunOptions(BaseModel):
+    """Runtime execution and safety control options separated from parameters."""
+    approve_risky: bool = False
+    escalate: bool = False
+    approved_by: Optional[str] = None
+    approval_token: Optional[str] = None
+
+
 class AutomationArtifact(BaseModel):
     """Complete automation artifact for a capability."""
     metadata: ArtifactMetadata
@@ -156,7 +164,11 @@ class AutomationArtifact(BaseModel):
     business_outcome_rules: List[BusinessOutcomeRule] = Field(default_factory=list)
     
     def get_parameter_values(self, params: Dict[str, Any]) -> Dict[str, Any]:
-        """Validate and prepare parameter values."""
+        """Validate and prepare parameter values. Unknown keys are strictly rejected."""
+        unknown_keys = set(params.keys()) - set(self.parameters.keys())
+        if unknown_keys:
+            raise ValueError(f"Parameter validation failed: unknown parameter(s): {', '.join(sorted(unknown_keys))}")
+
         result = {}
         for param_name, param_def in self.parameters.items():
             if param_name not in params:
@@ -166,10 +178,6 @@ class AutomationArtifact(BaseModel):
                     result[param_name] = param_def.default
             else:
                 result[param_name] = params[param_name]
-        # Preserve additional runtime and control parameters (e.g., approve_risky)
-        for key, val in params.items():
-            if key not in result:
-                result[key] = val
         return result
     
     def substitute_parameters(self, template: str, params: Dict[str, Any]) -> str:

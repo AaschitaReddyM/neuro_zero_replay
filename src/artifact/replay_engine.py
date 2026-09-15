@@ -7,7 +7,8 @@ from pathlib import Path
 from src.automation.browser import BrowserAutomation
 from src.artifact.schemas import (
     AutomationArtifact, ExecutionResult, ExecutionStatus, ErrorType, 
-    ActionType, CheckpointCondition, BusinessOutcomeRule, RiskLevel
+    ActionType, CheckpointCondition, BusinessOutcomeRule, RiskLevel,
+    RunOptions
 )
 from src.safety.guardrails import SafetyGuardrails
 from src.safety.escalation import EscalationManager, InterventionRequest
@@ -27,9 +28,22 @@ class ReplayEngine:
         self.safety = SafetyGuardrails()
         self.escalation = EscalationManager()
         
+    async def execute_artifact_with_options(self, artifact: AutomationArtifact,
+                                           parameters: Dict[str, Any],
+                                           options: Any) -> ExecutionResult:
+        """Execute an automation artifact with explicit run options."""
+        if isinstance(options, dict):
+            options = RunOptions(**options)
+        elif not isinstance(options, RunOptions):
+            options = RunOptions()
+        return await self.execute_artifact(artifact, parameters, options=options)
+
     async def execute_artifact(self, artifact: AutomationArtifact, 
-                              parameters: Dict[str, Any]) -> ExecutionResult:
+                              parameters: Dict[str, Any],
+                              options: Optional[RunOptions] = None) -> ExecutionResult:
         """Execute an automation artifact with given parameters."""
+        if options is None:
+            options = RunOptions()
         logger.info("Starting artifact execution", 
                    capability=artifact.metadata.capability_name,
                    version=artifact.metadata.version)
@@ -91,7 +105,7 @@ class ReplayEngine:
                     break
                 
                 # Risk gating policy check
-                if step.risk_level == RiskLevel.RISKY and not validated_params.get("approve_risky"):
+                if step.risk_level == RiskLevel.RISKY and not options.approve_risky:
                     error_step = step.step_id
                     reason = f"Step {step.step_id} ({step.action_type.value}) is marked as 'risky' and requires explicit confirmation (--approve-risky)"
                     screenshot_path = f"logs/confirmation_required_{step.step_id}.png"

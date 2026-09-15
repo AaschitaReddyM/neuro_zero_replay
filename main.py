@@ -2,9 +2,11 @@
 import asyncio
 import sys
 import argparse
+from typing import Optional
 from pathlib import Path
 from src.agent.orchestrator import AgentOrchestrator
 from src.artifact.replay_engine import ReplayEngine
+from src.artifact.schemas import RunOptions
 from src.utils.config import Config
 from src.utils.logging import setup_logging
 
@@ -48,7 +50,7 @@ async def run_discovery(goal: str, target_url: str, capability_name: str, descri
         sys.exit(1)
 
 
-async def run_replay(artifact_path: str, parameters: dict):
+async def run_replay(artifact_path: str, parameters: dict, options: Optional[RunOptions] = None):
     """Run deterministic replay of an automation artifact."""
     logger.info("Starting replay mode", artifact_path=artifact_path)
     
@@ -58,7 +60,7 @@ async def run_replay(artifact_path: str, parameters: dict):
         
         logger.info("Artifact loaded", capability=artifact.metadata.capability_name)
         
-        result = await replay_engine.execute_artifact(artifact, parameters)
+        result = await replay_engine.execute_artifact(artifact, parameters, options=options)
         
         logger.info("Replay completed", success=result.success, steps=result.steps_completed)
         
@@ -144,11 +146,12 @@ async def main():
     elif args.mode == "replay":
         import json
         params = json.loads(args.params) if args.params else {}
-        if getattr(args, "approve_risky", False):
-            params["approve_risky"] = True
-        if getattr(args, "escalate", False):
-            params["escalate"] = True
-        await run_replay(args.artifact, params)
+        options = RunOptions(
+            approve_risky=bool(getattr(args, "approve_risky", False)),
+            escalate=bool(getattr(args, "escalate", False)),
+            approved_by="cli_operator" if getattr(args, "approve_risky", False) else None
+        )
+        await run_replay(args.artifact, params, options=options)
     else:
         parser.print_help()
         sys.exit(1)
