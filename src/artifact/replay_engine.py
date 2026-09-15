@@ -300,9 +300,9 @@ class ReplayEngine:
                 if rule.text_contains:
                     selector = rule.selector or "body"
                     try:
-                        el = await page.query_selector(selector)
-                        if el and await el.is_visible():
-                            txt = await el.inner_text()
+                        loc = page.locator(selector)
+                        if await loc.count() > 0 and await loc.first.is_visible():
+                            txt = await loc.first.inner_text()
                             if rule.text_contains.lower() in txt.lower():
                                 return {"outcome": rule.outcome, "evidence_text": txt.strip()}
                     except Exception:
@@ -318,11 +318,11 @@ class ReplayEngine:
                     if expected_text:
                         for selector in ["#lookup-result", "#transfer-result", "#account-result", ".result", "body"]:
                             try:
-                                el = await page.query_selector(selector)
-                                if el:
-                                    is_vis = await el.is_visible()
+                                loc = page.locator(selector)
+                                if await loc.count() > 0:
+                                    is_vis = await loc.first.is_visible()
                                     if is_vis or selector == "body":
-                                        content = await el.inner_text()
+                                        content = await loc.first.inner_text()
                                         if expected_text.lower() in content.lower():
                                             return {
                                                 "outcome": handler.outcome,

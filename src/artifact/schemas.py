@@ -78,6 +78,7 @@ class TargetLocation(BaseModel):
     role: Optional[str] = None
     name: Optional[str] = None
     fallback_strategies: List[LocationStrategy] = Field(default_factory=list)
+    resolved_strategy: Optional[str] = None
 
 
 class ParameterDefinition(BaseModel):
