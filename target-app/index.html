@@ -517,6 +517,7 @@
 
             // Enterprise Core Banking Guardrails: Check source account status & balance
             const sourceMember = members[fromAccount];
+            const destMember = members[toAccount];
             if (sourceMember) {
                 if (sourceMember.status === 'Frozen') {
                     showResult(resultDiv, 'error', `Transfer Failed: Source account ${fromAccount} (${sourceMember.name}) is Frozen. Fund transfers are restricted by compliance.`);
