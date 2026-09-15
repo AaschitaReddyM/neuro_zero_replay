@@ -284,6 +284,15 @@ class BrowserAutomation:
             
         if text_contains:
             text = await element.inner_text()
-            return text_contains.lower() in text.lower()
+            if text_contains.lower() in text.lower():
+                return True
+            if self.page:
+                try:
+                    text_loc = self.page.get_by_text(text_contains)
+                    if await text_loc.count() > 0 and await text_loc.first.is_visible():
+                        return True
+                except Exception:
+                    pass
+            return False
             
         return await element.is_visible()

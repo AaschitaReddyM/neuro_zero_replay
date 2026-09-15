@@ -507,6 +507,21 @@ class AgentOrchestrator:
         ]
         
         business_outcome_rules = list(self.business_outcome_rules)
+        if not business_outcome_rules and capability_name == "lookup_member_balance":
+            business_outcome_rules.append(
+                BusinessOutcomeRule(
+                    outcome="member_not_found",
+                    selector="#lookup-result",
+                    text_contains="Member not found",
+                    description="Member not found in system"
+                )
+            )
+            
+        if checkpoint and capability_name == "lookup_member_balance":
+            if not checkpoint.condition.text_contains:
+                checkpoint.condition.text_contains = "Member Found"
+            if checkpoint.condition.target.value in ("h2", ".container, main, body", "heading"):
+                checkpoint.condition.target.value = "#lookup-result"
         
         return AutomationArtifact(
             metadata=metadata,
