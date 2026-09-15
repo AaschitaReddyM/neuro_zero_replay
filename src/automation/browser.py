@@ -134,6 +134,13 @@ class BrowserAutomation:
                     return loc.first
             except Exception:
                 pass
+            if target.value in ("#result-container", ".result-container", "#result"):
+                try:
+                    loc = self.page.locator(".result-container:visible, #lookup-result:visible, .result:visible")
+                    if await loc.count() > 0:
+                        return loc.first
+                except Exception:
+                    pass
                 
         # 2. Try accessible label matching if name is available
         if target.name:

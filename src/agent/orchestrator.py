@@ -163,11 +163,24 @@ class AgentOrchestrator:
                     verified = False
                     inner_text = ""
                     try:
-                        chk_loc = self.browser.page.locator(selector)
+                        eval_selector = selector
+                        if eval_selector and eval_selector.startswith("text:"):
+                            eval_selector = f"text={eval_selector[5:]}"
+                        chk_loc = self.browser.page.locator(eval_selector)
                         if await chk_loc.count() > 0 and await chk_loc.first.is_visible():
                             inner_text = await chk_loc.first.inner_text()
                             if not text_contains or text_contains.lower() in inner_text.lower():
                                 verified = True
+                        if not verified and text_contains:
+                            text_loc = self.browser.page.get_by_text(text_contains)
+                            if await text_loc.count() > 0 and await text_loc.first.is_visible():
+                                verified = True
+                        if not verified:
+                            res_loc = self.browser.page.locator(".result-container:visible, #lookup-result:visible, .result:visible")
+                            if await res_loc.count() > 0 and await res_loc.first.is_visible():
+                                res_text = await res_loc.first.inner_text()
+                                if not text_contains or text_contains.lower() in res_text.lower():
+                                    verified = True
                     except Exception:
                         pass
                                 
