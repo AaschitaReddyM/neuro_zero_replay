@@ -2,7 +2,8 @@
 import asyncio
 import sys
 import argparse
-from typing import Optional
+import json
+from typing import Optional, Dict, Any
 from pathlib import Path
 from src.agent.orchestrator import AgentOrchestrator
 from src.artifact.replay_engine import ReplayEngine
@@ -110,6 +111,40 @@ BANNER = """
 """
 
 
+def _parse_cli_params(raw: Optional[str]) -> Dict[str, Any]:
+    """Parse parameters string from CLI, resilient to shell quote stripping."""
+    if not raw:
+        return {}
+    raw = raw.strip()
+    try:
+        return json.loads(raw)
+    except Exception:
+        pass
+    
+    # Handle PowerShell stripping double quotes: {member_id:12345}
+    if raw.startswith("{") and raw.endswith("}"):
+        content = raw[1:-1].strip()
+        result = {}
+        for item in content.split(","):
+            if ":" in item:
+                k, v = item.split(":", 1)
+                result[k.strip().strip("'\"")] = v.strip().strip("'\"")
+        if result:
+            return result
+            
+    # Handle key=value format: member_id=12345
+    if "=" in raw:
+        result = {}
+        for item in raw.split(","):
+            if "=" in item:
+                k, v = item.split("=", 1)
+                result[k.strip().strip("'\"")] = v.strip().strip("'\"")
+        if result:
+            return result
+            
+    return json.loads(raw)
+
+
 async def main():
     """Main entry point."""
     print(BANNER)
@@ -142,12 +177,10 @@ async def main():
         sys.exit(1)
     
     if args.mode == "discovery":
-        import json
-        params = json.loads(args.params) if getattr(args, "params", None) else None
+        params = _parse_cli_params(args.params) if getattr(args, "params", None) else None
         await run_discovery(args.goal, args.target_url, args.capability_name, args.description, params=params)
     elif args.mode == "replay":
-        import json
-        params = json.loads(args.params) if args.params else {}
+        params = _parse_cli_params(args.params)
         options = RunOptions(
             approve_risky=bool(getattr(args, "approve_risky", False)),
             escalate=bool(getattr(args, "escalate", False)),
