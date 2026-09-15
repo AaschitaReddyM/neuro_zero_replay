@@ -91,7 +91,7 @@ Start the core banking portal on `http://localhost:8080`:
 ```bash
 python -m http.server 8080 --directory target-app
 ```
-*(Leave running in a background terminal or use a separate window. Alternatively, inspect the live portal deployed via GitHub Pages at: [https://aaschitareddym.github.io/neuro_zero_replay/](https://aaschitareddym.github.io/neuro_zero_replay/))*
+*(Leave running in a background terminal or use a separate window)*
 
 ### Step 2: Live LLM Capability Discovery
 Run autonomous discovery to generate a parameterized artifact:

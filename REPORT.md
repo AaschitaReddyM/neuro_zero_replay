@@ -325,8 +325,8 @@ To preserve engineering focus and adhere to the brief's evaluation criteria (dep
    - *What I cut*: All legacy mock discovery scripts (`mock_discovery*.py`).
    - *What I built*: Authentic live discovery in `main.py discovery` powered by real asynchronous Google Gemini REST integration, verified in 4.52 seconds against `http://localhost:8080`.
 5. **Auxiliary Deployment & Cataloging Infrastructure**:
-   - *What I cut*: Speculative production packaging (`Dockerfile`, `docker-compose.yml`, `DEPLOYMENT.md`), compliance checklists, and mock marketplace cataloging (`src/artifact/marketplace.py`, `src/artifact/metrics.py`).
-   - *What I retained as out-of-scope convenience*: `.github/workflows/deploy-pages.yml` to automatically host the target core-banking portal live on GitHub Pages (`https://aaschitareddym.github.io/neuro_zero_replay/`), allowing evaluators to interact directly with the application surface in their browser without spinning up local server ports.
+   - *What I cut*: Auxiliary deployment packaging (`Dockerfile`, `docker-compose.yml`, `DEPLOYMENT.md`, `.github/workflows/deploy-pages.yml`), compliance checklists, and mock marketplace cataloging (`src/artifact/marketplace.py`, `src/artifact/metrics.py`).
+   - *Why I cut it*: Out-of-scope for core computer-use automation. The brief specifically penalizes speculative packaging and rewards depth in real browser interaction, deterministic replay, safety boundaries, and human escalation.
 
 ### What I'd Build Next (Production Roadmap)
 
