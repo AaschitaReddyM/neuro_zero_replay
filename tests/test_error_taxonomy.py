@@ -73,18 +73,22 @@ async def test_arbitrary_exception_reported_as_failure(replay_engine, sample_art
 @pytest.mark.asyncio
 async def test_page_shows_member_not_found_triggers_business_outcome(replay_engine, sample_artifact):
     """When the live page DOM shows 'Member not found', it must be detected as a business outcome."""
-    # Mock active browser page with mock element returning "Member not found"
+    # Mock active browser page with mock Locator returning "Member not found"
     mock_page = MagicMock()
-    mock_el = MagicMock()
-    mock_el.is_visible = AsyncMock(return_value=True)
-    mock_el.inner_text = AsyncMock(return_value="Member not found. Please check the member ID and try again.")
+    mock_loc = MagicMock()
+    mock_loc.count = AsyncMock(return_value=1)
+    mock_loc.first = MagicMock()
+    mock_loc.first.is_visible = AsyncMock(return_value=True)
+    mock_loc.first.inner_text = AsyncMock(return_value="Member not found. Please check the member ID and try again.")
     
-    async def mock_query_selector(selector):
+    def mock_locator(selector):
         if selector == "#lookup-result":
-            return mock_el
-        return None
+            return mock_loc
+        empty = MagicMock()
+        empty.count = AsyncMock(return_value=0)
+        return empty
         
-    mock_page.query_selector = AsyncMock(side_effect=mock_query_selector)
+    mock_page.locator = MagicMock(side_effect=mock_locator)
     replay_engine.browser.page = mock_page
     
     outcome_info = await replay_engine._detect_page_business_outcome(sample_artifact)

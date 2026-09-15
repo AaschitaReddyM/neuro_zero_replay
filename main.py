@@ -11,6 +11,13 @@ from src.utils.logging import setup_logging
 # Setup logging
 logger = setup_logging()
 
+if sys.platform == "win32":
+    try:
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+        sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+    except Exception:
+        pass
+
 
 async def run_discovery(goal: str, target_url: str, capability_name: str, description: str):
     """Run LLM-driven discovery to create an automation artifact."""
@@ -55,7 +62,8 @@ async def run_replay(artifact_path: str, parameters: dict):
         
         logger.info("Replay completed", success=result.success, steps=result.steps_completed)
         
-        print(f"\n{'✓' if result.success else '✗'} Replay {'succeeded' if result.success else 'failed'}")
+        print(f"\n{'[SUCCESS]' if result.success else '[COMPLETED]'} Replay {'succeeded' if result.success else 'finished'}")
+        print(f"Status: {result.status.value}")
         print(f"Steps completed: {result.steps_completed}/{len(artifact.steps)}")
         print(f"Execution time: {result.execution_time_seconds:.2f}s")
         
@@ -66,17 +74,23 @@ async def run_replay(artifact_path: str, parameters: dict):
         
         if result.business_outcome:
             print(f"\nBusiness outcome: {result.business_outcome}")
+            if result.evidence_text:
+                print(f"Evidence: {result.evidence_text}")
         
         if result.error:
             print(f"\nError: {result.error}")
             if result.error_step:
                 print(f"Failed at step: {result.error_step}")
+            if result.expected:
+                print(f"Expected: {result.expected}")
+            if result.observed:
+                print(f"Observed: {result.observed}")
         
         return result
         
     except Exception as e:
         logger.error("Replay failed", error=str(e))
-        print(f"\n✗ Replay failed: {str(e)}")
+        print(f"\n[FAILED] Replay failed: {str(e)}")
         sys.exit(1)
 
 
