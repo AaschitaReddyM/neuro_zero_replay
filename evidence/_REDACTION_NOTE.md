@@ -1,37 +1,46 @@
-# PII Redaction & Active Guardrails Note
+# PII Redaction & Active Guardrails Policy
 
 ## Overview
-In accordance with enterprise banking and privacy guardrails, **NeuroZero Replay** enforces active recursive PII (Personally Identifiable Information) masking across all layers of the automation architecture:
-1. **Replay Engine Outputs**: Extracted text, execution metrics, and observed error payloads are sanitized before terminal serialization and caller return.
-2. **Structured Logging (structlog)**: A dedicated processor (
-edaction_processor) intercepts all log event dictionaries in memory before serialization or console emission.
-3. **LLM Context Wire Filter**: Accessibility trees and scraped page content pass through recursive redaction prior to prompt assembly during autonomous discovery.
+In accordance with enterprise banking and privacy requirements, **NeuroZero Replay** enforces active recursive PII (Personally Identifiable Information) masking across logs, intervention records, and runtime evidence.
 
 ---
 
-## Redaction Capabilities
+## Redaction Capabilities & Enforcement
 
-### 1. Dictionary Key Matching (Case-Insensitive)
-Any dictionary field matching or containing the following keys is masked immediately:
-- ssn, social_security
-- password, pin, cvv
-- credit_card, creditcard
-- ccount_number, 
-outing_number
-- 	oken, secret, pi_key
+### 1. Extracted Values are Sensitive by Default
+- The browser automation engine never writes extracted text to log streams.
+- Replay execution logs output only the extraction key, character length, and a truncated SHA-256 hash (`length=...`, `hash=...`), ensuring raw banking data does not leak into log aggregators.
 
-### 2. Regular Expression Value Patterns
-Arbitrary strings, log messages, error observations, and free-text page extracts are scanned and scrubbed:
-- **Social Security Numbers (SSN)**: \d{3}-\d{2}-\d{4} -> ***REDACTED_SSN***
-- **Bank Account Numbers (9–17 digits)**: \d{9,17} -> ***REDACTED_ACCT***
-- **Bearer Tokens**: (?i)bearer\s+[a-zA-Z0-9_\-\.]+ -> Bearer ***REDACTED***
-- **API Keys / Secrets**: sk-[a-zA-Z0-9_\-]{20,} -> ***REDACTED_KEY***
+### 2. Escalation Intervention Excerpts
+- Human escalation records (`evidence/interventions/*.json`) restrict DOM snapshots to a redacted text excerpt of at most 300 characters (`page_content[:300]`), accompanied by a localized visual screenshot path, eliminating multi-megabyte page memory dumps.
 
-### 3. Recursive Traversal
-Nested dictionaries and lists are recursively traversed so no deeply nested payloads escape redaction.
+### 3. Business Outcome Evidence
+- Page-visible evidence strings (`evidence_text`) are passed through `redact_sensitive_data` and truncated to 300 characters before inclusion in result payloads.
+
+### 4. Dictionary Key Matching (Case-Insensitive)
+Any dictionary field matching or containing the following keys is masked immediately upon serialization:
+- `password`, `pin`, `cvv`
+- `ssn`, `social_security`
+- `credit_card`, `creditcard`
+- `account_number`, `routing_number`
+- `token`, `secret`, `api_key`
+- 5–8 digit numeric IDs under keys containing `member` or `id` -> `***REDACTED_ID***`
+
+### 5. Regular Expression Value Patterns
+Arbitrary strings, error observations, and free-text page extracts are scanned and scrubbed:
+- **Social Security Numbers (SSN)**: `\b\d{3}-\d{2}-\d{4}\b` -> `***REDACTED_SSN***`
+- **Bank Account Numbers (9–17 digits)**: `\b\d{9,17}\b` -> `***REDACTED_ACCT***`
+- **Bearer Tokens**: `(?i)bearer\s+[a-zA-Z0-9_\-\.]+` -> `Bearer ***REDACTED***`
+- **API Keys / Secrets**: `\bsk-[a-zA-Z0-9_\-]{20,}\b` -> `***REDACTED_KEY***`
+- **Currency Amounts**: `\$\s?\d[\d,]*\.\d{2}` -> `***REDACTED_CURRENCY***`
+- **Synthetic Test Personas**: `\b(Synthetic Member Name)\b` -> `***REDACTED_NAME***`
 
 ---
 
-## Verification
-- Unit test: 	ests/probe_audit.py validates recursive masking on nested dictionaries and pattern strings.
-- Integration test: Verified during live replay against http://localhost:8080.
+## Explicit Policy Limitations (What Still Leaks & Why)
+
+1. **Arbitrary Human Names in Unstructured Text**:
+   - Arbitrary person names (e.g., custom member names outside dictionary keys) cannot be reliably detected or redacted using static regular expressions without introducing massive false positive rates or relying on heavy named-entity recognition (NER) NLP models.
+   - For enterprise production deployment, named-entity recognition services (such as Google Cloud DLP or AWS Comprehend) should be integrated into the log aggregation pipeline. For the bundled synthetic test suite, synthetic demo personas are handled via known token patterns.
+2. **Visual Screenshots**:
+   - Full-page PNG screenshots captured during discovery and escalation contain rendered pixels of the application UI. Visual pixel blurring is not applied in this version and requires server-side image redaction pipelines before external distribution.

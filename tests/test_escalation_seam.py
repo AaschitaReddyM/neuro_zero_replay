@@ -79,7 +79,7 @@ async def test_escalation_lifecycle():
     
     assert result.status == ExecutionStatus.SUCCESS
     assert result.steps_completed == 6
-    assert 'John Smith' in str(result.outputs)
+    assert result.outputs.get('account_status') == 'ACTIVE'
 
 
 @pytest.mark.asyncio

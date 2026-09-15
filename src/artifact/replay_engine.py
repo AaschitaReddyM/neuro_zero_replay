@@ -224,7 +224,8 @@ class ReplayEngine:
                     page_outcome = await self._detect_page_business_outcome(artifact)
                     if page_outcome:
                         business_outcome = page_outcome["outcome"]
-                        evidence_text = page_outcome.get("evidence_text")
+                        raw_ev = page_outcome.get("evidence_text", "")
+                        evidence_text = self.safety.redact_sensitive_data(raw_ev)[:300] if raw_ev else None
                         logger.info("Page-visible business outcome detected", 
                                    outcome=business_outcome, evidence=evidence_text)
                         break
@@ -234,7 +235,8 @@ class ReplayEngine:
                     
                     if error_info.get("is_business_outcome"):
                         business_outcome = error_info["outcome"]
-                        evidence_text = error_info.get("evidence_text")
+                        raw_ev = error_info.get("evidence_text", "")
+                        evidence_text = self.safety.redact_sensitive_data(raw_ev)[:300] if raw_ev else None
                         logger.info("Business outcome encountered", 
                                    outcome=business_outcome, evidence=evidence_text)
                         break
@@ -353,8 +355,7 @@ class ReplayEngine:
                 fallback_strategies_used=[]
             )
             
-            # Redact sensitive data from outputs and error observations
-            outputs = self.safety.redact_sensitive_data(outputs)
+            # Redact sensitive data from error observations
             if error_observed:
                 error_observed = self.safety.redact_sensitive_data(error_observed)
                 
@@ -495,7 +496,8 @@ class ReplayEngine:
                         if await loc.count() > 0 and await loc.first.is_visible():
                             txt = await loc.first.inner_text()
                             if rule.text_contains.lower() in txt.lower():
-                                return {"outcome": rule.outcome, "evidence_text": txt.strip()}
+                                redacted_evidence = self.safety.redact_sensitive_data(txt.strip())[:300]
+                                return {"outcome": rule.outcome, "evidence_text": redacted_evidence}
                     except Exception:
                         pass
         except Exception as e:

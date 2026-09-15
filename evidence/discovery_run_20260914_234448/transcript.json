@@ -35,11 +35,11 @@
     "step": 4,
     "decision": {
       "action_type": "done",
-      "reasoning": "The member lookup results are already visible on the page, showing the savings balance of $5432.50 for member 12345.",
+      "reasoning": "The member lookup results are already visible on the page, showing the savings balance of ***REDACTED_CURRENCY*** for member ***REDACTED_ID***.",
       "outputs": {
-        "member_id": "12345",
-        "member_name": "John Smith",
-        "savings_balance": "$5432.50",
+        "member_id": "***REDACTED_ID***",
+        "member_name": "***REDACTED***",
+        "savings_balance": "***REDACTED_CURRENCY***",
         "account_type": "Savings"
       },
       "checkpoint": {

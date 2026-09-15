@@ -229,7 +229,9 @@ class BrowserAutomation:
                 text = await element.inner_text()
                 # Clean bullet characters or excess formatting if present
                 clean_text = text.replace("●", "").strip()
-                logger.info("Extract action executed", text=clean_text)
+                import hashlib
+                val_hash = hashlib.sha256(clean_text.encode("utf-8")).hexdigest()[:8]
+                logger.info("Extract action executed", length=len(clean_text), hash=val_hash)
                 return True, clean_text
             elif action_type == ActionType.SELECT:
                 await element.select_option(value)

@@ -5,7 +5,7 @@ This document logs the real execution runs of the deterministic replay engine ag
 
 ---
 
-## 1. Successful Deterministic Replay (Jane Johnson)
+## 1. Successful Deterministic Replay (Lookup Member Balance)
 
 - **Command**:
   ```bash
@@ -14,14 +14,13 @@ This document logs the real execution runs of the deterministic replay engine ag
 - **Log Source**: `evidence/replay_success_run.log`
 - **Measured Latency**: 1.80s
 - **Status**: `SUCCESS` (Disjoint terminal state)
-- **Steps Completed**: 4/4
-- **Extracted Outputs**:
+- **Steps Completed**: 7/7
+- **Extracted Outputs** (masked on console via privacy guardrails):
   ```
-  Name: Jane Johnson
-  Status: ACTIVE
-  Balance: $12500.00
-  Account Type: Checking
-  Member Since: 2019-07-22
+  member_name: ***REDACTED***
+  savings_balance: ***REDACTED_CURRENCY***
+  account_type: Checking
+  status: ACTIVE
   ```
 - **Checkpoint**: Verified `#lookup-result` element visibility and `"Member Found"` text match.
 

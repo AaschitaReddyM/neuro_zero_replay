@@ -267,12 +267,23 @@ Actions are categorized by risk level:
 
 When replaying without authorization flags, encountering a `RISKY` action immediately halts execution with status `NEEDS_CONFIRMATION` (verified in `account_management.json` step 6). Replay requires `--approve-risky` to proceed.
 
+**Production Authorization Model**:
+In production environments, `approve_risky` may **only** be asserted by authorized human operators or an upstream enterprise policy service, **never** by the invoking LLM agent or autonomous callers. Control flags are strictly isolated in a dedicated `RunOptions` object passed as a separate argument from runtime `params` (ensuring no `{{template}}` parameter injection can self-approve risky steps). Furthermore, the authorizing entity (`approved_by`) and approval tokens are permanently recorded in the execution result and evidence logs.
+
 ### 3. Recursive PII Redaction
 All data structures, logging streams, and error records are processed by `redact_sensitive_data`:
-- US Social Security Numbers (`\b\d{3}-\d{2}-\d{4}\b`)
-- Financial Account Numbers (9 to 17 digits)
-- Bearer tokens and API keys (`Bearer [A-Za-z0-9_-]+`)
-- Regulated keyword fields (`ssn`, `password`, `token`, `secret`, `api_key`) are recursively masked across nested dictionaries, lists, and strings.
+- US Social Security Numbers (`\b\d{3}-\d{2}-\d{4}\b`) -> `***REDACTED_SSN***`
+- Financial Account Numbers (9 to 17 digits) -> `***REDACTED_ACCT***`
+- Currency Amounts (`\$\s?\d[\d,]*\.\d{2}`) -> `***REDACTED_CURRENCY***`
+- 5–8 digit numeric IDs when under dictionary keys containing `member` or `id` -> `***REDACTED_ID***`
+- Bearer tokens and API keys (`Bearer [A-Za-z0-9_-]+`, `sk-...`)
+- Regulated keyword fields (`ssn`, `password`, `pin`, `cvv`, `token`, `secret`, `api_key`) are recursively masked across nested dictionaries, lists, and strings.
+- Extracted values are treated as sensitive by default in browser logs: only character length and SHA-256 hash are emitted.
+- Escalation intervention records store a strictly redacted excerpt ($\le 300$ characters) rather than raw full-page DOM dumps.
+
+#### Explicit Redaction Boundaries & Limitations (What Still Leaks & Why)
+- **Arbitrary Human Names in Unstructured Text**: Arbitrary human names appearing in free-form DOM text cannot be reliably detected or redacted using static regular expressions without incurring extreme false-positive rates on common English nouns or necessitating heavyweight natural-language named-entity recognition (NER) models. In production, enterprise data loss prevention (DLP) pipelines (e.g., Google Cloud DLP or AWS Comprehend) process streaming logs. For this local synthetic evaluation, known persona names are scrubbed from serialized logs and evidence, but general arbitrary names in unstructured text remain unredacted unless bound to an explicit dictionary key (`member_name`).
+- **Rendered Screenshots**: Full-page visual PNG screenshots captured during discovery and intervention contain raw rendered pixels of the application UI. Server-side pixel blurring is intentionally out of scope for this CLI engine and must be applied by upstream evidence storage layers before public dissemination.
 
 ---
 

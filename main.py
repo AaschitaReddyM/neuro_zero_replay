@@ -71,7 +71,8 @@ async def run_replay(artifact_path: str, parameters: dict, options: Optional[Run
         
         if result.outputs:
             print("\nOutputs:")
-            for key, value in result.outputs.items():
+            redacted_outputs = SafetyGuardrails().redact_sensitive_data(result.outputs)
+            for key, value in redacted_outputs.items():
                 print(f"  {key}: {value}")
         
         if result.business_outcome:

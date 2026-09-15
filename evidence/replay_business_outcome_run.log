@@ -8,39 +8,39 @@
   Agentic Computer-Use & Zero-LLM Deterministic Replay Engine
   v1.0.0 | Enterprise FinTech Edition
 
-{"artifact_path": "evidence/artifacts/lookup_member_balance.json", "event": "Starting replay mode", "logger": "__main__", "level": "info", "timestamp": "2026-09-15T03:45:43.950797Z"}
-{"path": "evidence/artifacts/lookup_member_balance.json", "event": "Loading artifact", "logger": "src.artifact.replay_engine", "level": "info", "timestamp": "2026-09-15T03:45:43.951797Z"}
-{"capability": "lookup_member_balance", "event": "Artifact loaded", "logger": "__main__", "level": "info", "timestamp": "2026-09-15T03:45:43.952836Z"}
-{"capability": "lookup_member_balance", "version": "1.0", "event": "Starting artifact execution", "logger": "src.artifact.replay_engine", "level": "info", "timestamp": "2026-09-15T03:45:43.952836Z"}
-{"headless": true, "event": "Starting browser", "logger": "src.automation.browser", "level": "info", "timestamp": "2026-09-15T03:45:43.952836Z"}
-{"event": "Browser started successfully", "logger": "src.automation.browser", "level": "info", "timestamp": "2026-09-15T03:45:44.889977Z"}
-{"domain": "localhost", "allowed": true, "event": "Domain check", "logger": "src.safety.guardrails", "level": "info", "timestamp": "2026-09-15T03:45:44.890977Z"}
-{"action_type": "navigate", "allowed": true, "event": "Action type check", "logger": "src.safety.guardrails", "level": "info", "timestamp": "2026-09-15T03:45:44.890977Z"}
-{"domain": "localhost", "allowed": true, "event": "Domain check", "logger": "src.safety.guardrails", "level": "info", "timestamp": "2026-09-15T03:45:44.890977Z"}
-{"url": "http://localhost:8080", "event": "Navigating to URL", "logger": "src.automation.browser", "level": "info", "timestamp": "2026-09-15T03:45:44.890977Z"}
-{"event": "Navigation completed", "logger": "src.automation.browser", "level": "info", "timestamp": "2026-09-15T03:45:45.430752Z"}
-{"domain": "localhost", "allowed": true, "event": "Domain check", "logger": "src.safety.guardrails", "level": "info", "timestamp": "2026-09-15T03:45:45.431340Z"}
-{"step": 1, "action_type": "navigate", "duration_seconds": 0.5431840419769287, "event": "Step completed", "logger": "src.artifact.replay_engine", "level": "info", "timestamp": "2026-09-15T03:45:45.433161Z"}
-{"action_type": "type", "allowed": true, "event": "Action type check", "logger": "src.safety.guardrails", "level": "info", "timestamp": "2026-09-15T03:45:45.531687Z"}
-{"strategy": "accessibility_role", "role": "textbox", "name": "Member ID:", "event": "Element resolved", "logger": "src.automation.browser", "level": "info", "timestamp": "2026-09-15T03:45:45.542245Z"}
-{"value_length": 5, "event": "Type action executed", "logger": "src.automation.browser", "level": "info", "timestamp": "2026-09-15T03:45:45.561758Z"}
-{"domain": "localhost", "allowed": true, "event": "Domain check", "logger": "src.safety.guardrails", "level": "info", "timestamp": "2026-09-15T03:45:45.561758Z"}
-{"step": 2, "action_type": "type", "duration_seconds": 0.03007054328918457, "event": "Step completed", "logger": "src.artifact.replay_engine", "level": "info", "timestamp": "2026-09-15T03:45:45.561758Z"}
-{"action_type": "click", "allowed": true, "event": "Action type check", "logger": "src.safety.guardrails", "level": "info", "timestamp": "2026-09-15T03:45:45.602757Z"}
-{"strategy": "accessibility_role", "role": "button", "name": "Search", "event": "Element resolved", "logger": "src.automation.browser", "level": "info", "timestamp": "2026-09-15T03:45:45.612096Z"}
-{"event": "Click action executed", "logger": "src.automation.browser", "level": "info", "timestamp": "2026-09-15T03:45:45.656548Z"}
-{"domain": "localhost", "allowed": true, "event": "Domain check", "logger": "src.safety.guardrails", "level": "info", "timestamp": "2026-09-15T03:45:45.656548Z"}
-{"step": 3, "action_type": "click", "duration_seconds": 0.05479168891906738, "event": "Step completed", "logger": "src.artifact.replay_engine", "level": "info", "timestamp": "2026-09-15T03:45:45.657548Z"}
-{"outcome": "member_not_found", "evidence": "Member not found. Please check the member ID and try again.", "event": "Page-visible business outcome detected", "logger": "src.artifact.replay_engine", "level": "info", "timestamp": "2026-09-15T03:45:45.668432Z"}
-{"artifact": "lookup_member_balance", "success": false, "time_seconds": 1.7155966758728027, "event": "Execution recorded", "logger": "src.artifact.metrics", "level": "info", "timestamp": "2026-09-15T03:45:45.668432Z"}
-{"event": "Stopping browser", "logger": "src.automation.browser", "level": "info", "timestamp": "2026-09-15T03:45:45.669392Z"}
-{"event": "Browser stopped", "logger": "src.automation.browser", "level": "info", "timestamp": "2026-09-15T03:45:45.748263Z"}
-{"success": false, "steps": 3, "event": "Replay completed", "logger": "__main__", "level": "info", "timestamp": "2026-09-15T03:45:45.749259Z"}
+{"artifact_path": "evidence/artifacts/lookup_member_balance.json", "event": "Starting replay mode", "logger": "__main__", "level": "info", "timestamp": "2026-09-15T04:46:08.936749Z"}
+{"path": "evidence/artifacts/lookup_member_balance.json", "event": "Loading artifact", "logger": "src.artifact.replay_engine", "level": "info", "timestamp": "2026-09-15T04:46:08.937752Z"}
+{"capability": "lookup_member_balance", "event": "Artifact loaded", "logger": "__main__", "level": "info", "timestamp": "2026-09-15T04:46:08.938718Z"}
+{"capability": "lookup_member_balance", "version": "1.0", "event": "Starting artifact execution", "logger": "src.artifact.replay_engine", "level": "info", "timestamp": "2026-09-15T04:46:08.938718Z"}
+{"headless": true, "event": "Starting browser", "logger": "src.automation.browser", "level": "info", "timestamp": "2026-09-15T04:46:08.938718Z"}
+{"event": "Browser started successfully", "logger": "src.automation.browser", "level": "info", "timestamp": "2026-09-15T04:46:09.873052Z"}
+{"domain": "localhost", "allowed": true, "event": "Domain check", "logger": "src.safety.guardrails", "level": "info", "timestamp": "2026-09-15T04:46:09.873052Z"}
+{"action_type": "navigate", "allowed": true, "event": "Action type check", "logger": "src.safety.guardrails", "level": "info", "timestamp": "2026-09-15T04:46:09.873781Z"}
+{"domain": "localhost", "allowed": true, "event": "Domain check", "logger": "src.safety.guardrails", "level": "info", "timestamp": "2026-09-15T04:46:09.873781Z"}
+{"url": "http://localhost:8080", "event": "Navigating to URL", "logger": "src.automation.browser", "level": "info", "timestamp": "2026-09-15T04:46:09.873781Z"}
+{"event": "Navigation completed", "logger": "src.automation.browser", "level": "info", "timestamp": "2026-09-15T04:46:10.406279Z"}
+{"domain": "localhost", "allowed": true, "event": "Domain check", "logger": "src.safety.guardrails", "level": "info", "timestamp": "2026-09-15T04:46:10.407296Z"}
+{"step": 1, "action_type": "navigate", "duration_seconds": 0.5342440605163574, "event": "Step completed", "logger": "src.artifact.replay_engine", "level": "info", "timestamp": "2026-09-15T04:46:10.407296Z"}
+{"action_type": "type", "allowed": true, "event": "Action type check", "logger": "src.safety.guardrails", "level": "info", "timestamp": "2026-09-15T04:46:10.446886Z"}
+{"strategy": "accessibility_role", "role": "textbox", "name": "Member ID:", "event": "Element resolved", "logger": "src.automation.browser", "level": "info", "timestamp": "2026-09-15T04:46:10.459849Z"}
+{"value_length": 5, "event": "Type action executed", "logger": "src.automation.browser", "level": "info", "timestamp": "2026-09-15T04:46:10.482099Z"}
+{"domain": "localhost", "allowed": true, "event": "Domain check", "logger": "src.safety.guardrails", "level": "info", "timestamp": "2026-09-15T04:46:10.482099Z"}
+{"step": 2, "action_type": "type", "duration_seconds": 0.036226749420166016, "event": "Step completed", "logger": "src.artifact.replay_engine", "level": "info", "timestamp": "2026-09-15T04:46:10.483112Z"}
+{"action_type": "click", "allowed": true, "event": "Action type check", "logger": "src.safety.guardrails", "level": "info", "timestamp": "2026-09-15T04:46:10.493095Z"}
+{"strategy": "accessibility_role", "role": "button", "name": "Search", "event": "Element resolved", "logger": "src.automation.browser", "level": "info", "timestamp": "2026-09-15T04:46:10.505097Z"}
+{"event": "Click action executed", "logger": "src.automation.browser", "level": "info", "timestamp": "2026-09-15T04:46:10.541095Z"}
+{"domain": "localhost", "allowed": true, "event": "Domain check", "logger": "src.safety.guardrails", "level": "info", "timestamp": "2026-09-15T04:46:10.541095Z"}
+{"step": 3, "action_type": "click", "duration_seconds": 0.04900169372558594, "event": "Step completed", "logger": "src.artifact.replay_engine", "level": "info", "timestamp": "2026-09-15T04:46:10.542097Z"}
+{"outcome": "member_not_found", "evidence": "Member not found. Please check the member ID and try again.", "event": "Page-visible business outcome detected", "logger": "src.artifact.replay_engine", "level": "info", "timestamp": "2026-09-15T04:46:10.555193Z"}
+{"artifact": "lookup_member_balance", "success": false, "time_seconds": 1.6164751052856445, "event": "Execution recorded", "logger": "src.artifact.metrics", "level": "info", "timestamp": "2026-09-15T04:46:10.555193Z"}
+{"event": "Stopping browser", "logger": "src.automation.browser", "level": "info", "timestamp": "2026-09-15T04:46:10.556188Z"}
+{"event": "Browser stopped", "logger": "src.automation.browser", "level": "info", "timestamp": "2026-09-15T04:46:10.634758Z"}
+{"success": false, "steps": 3, "event": "Replay completed", "logger": "__main__", "level": "info", "timestamp": "2026-09-15T04:46:10.634758Z"}
 
 [COMPLETED] Replay finished
 Status: business_outcome
-Steps completed: 3/4
-Execution time: 1.72s
+Steps completed: 3/7
+Execution time: 1.62s
 
 Business outcome: member_not_found
 Evidence: Member not found. Please check the member ID and try again.

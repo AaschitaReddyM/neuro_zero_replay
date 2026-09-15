@@ -85,6 +85,11 @@ class EscalationManager:
                     
         # Persist structured intervention request (with active recursive redaction)
         intervention_file = self.interventions_dir / f"{request.run_id}.json"
+        excerpt = None
+        if request.page_content:
+            raw_excerpt = request.page_content[:300]
+            excerpt = redact_sensitive_data(raw_excerpt)
+
         raw_record = {
             "run_id": request.run_id,
             "capability_name": request.capability_name,
@@ -92,7 +97,7 @@ class EscalationManager:
             "reason": request.reason,
             "control_state": ControlState.HUMAN_CONTROL.value,
             "screenshot_path": request.screenshot_path,
-            "page_content": request.page_content[:1000] if request.page_content else None,
+            "page_content": excerpt,
             "context": request.context,
             "created_at": request.created_at,
             "status": "pending_human_action",
