@@ -97,7 +97,7 @@ async def test_page_shows_member_not_found_triggers_business_outcome(replay_engi
     assert "Member not found" in outcome_info["evidence_text"]
     
     # Also verify that _handle_step_error consults page state and returns business outcome
-    step = sample_artifact.steps[4]  # Step trying to extract data from missing table
+    step = sample_artifact.steps[-1]  # Step trying to extract data from missing table
     res = await replay_engine._handle_step_error(step, "Element not found", sample_artifact)
     assert res.get("is_business_outcome") is True
     assert res.get("outcome") == "member_not_found"

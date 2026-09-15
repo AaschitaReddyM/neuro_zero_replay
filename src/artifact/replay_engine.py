@@ -422,15 +422,16 @@ class ReplayEngine:
             rules = getattr(artifact, "business_outcome_rules", [])
             for rule in rules:
                 if rule.text_contains:
-                    selector = rule.selector or "body"
-                    try:
-                        loc = page.locator(selector)
-                        if await loc.count() > 0 and await loc.first.is_visible():
-                            txt = await loc.first.inner_text()
-                            if rule.text_contains.lower() in txt.lower():
-                                return {"outcome": rule.outcome, "evidence_text": txt.strip()}
-                    except Exception:
-                        pass
+                    candidates = [rule.selector] if rule.selector else ["#lookup-result", "#transfer-result", "#account-result", ".result", "body"]
+                    for selector in candidates:
+                        try:
+                            loc = page.locator(selector)
+                            if await loc.count() > 0 and await loc.first.is_visible():
+                                txt = await loc.first.inner_text()
+                                if rule.text_contains.lower() in txt.lower():
+                                    return {"outcome": rule.outcome, "evidence_text": txt.strip()}
+                        except Exception:
+                            pass
 
             # Check legacy error_handlers with error_type == BUSINESS_OUTCOME
             for handler in artifact.error_handlers:

@@ -1,0 +1,54 @@
+[
+  {
+    "step": 1,
+    "action_type": "navigate",
+    "url": "http://localhost:8080",
+    "status": "success",
+    "screenshot": "evidence\\discovery_run_20260914_234448\\step_1_navigate.png"
+  },
+  {
+    "step": 2,
+    "decision": {
+      "action_type": "type",
+      "target_role": "textbox",
+      "target_name": "Member ID:",
+      "value": "12345",
+      "reasoning": "Enter the member ID 12345 into the Member ID input field to prepare for the search."
+    },
+    "result": null,
+    "status": "success",
+    "screenshot": "evidence\\discovery_run_20260914_234448\\step_2_type.png"
+  },
+  {
+    "step": 3,
+    "decision": {
+      "action_type": "click",
+      "target_role": "button",
+      "target_name": "Search",
+      "reasoning": "Click the Search button to look up the details for member 12345."
+    },
+    "result": null,
+    "status": "success",
+    "screenshot": "evidence\\discovery_run_20260914_234448\\step_3_click.png"
+  },
+  {
+    "step": 4,
+    "decision": {
+      "action_type": "done",
+      "reasoning": "The member lookup results are already visible on the page, showing the savings balance of $5432.50 for member 12345.",
+      "outputs": {
+        "member_id": "12345",
+        "member_name": "John Smith",
+        "savings_balance": "$5432.50",
+        "account_type": "Savings"
+      },
+      "checkpoint": {
+        "strategy": "semantic_selector",
+        "value": "h2",
+        "text_contains": "Member Found"
+      }
+    },
+    "status": "completed",
+    "screenshot": "evidence\\discovery_run_20260914_234448\\step_4_done.png"
+  }
+]

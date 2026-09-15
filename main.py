@@ -19,13 +19,13 @@ if sys.platform == "win32":
         pass
 
 
-async def run_discovery(goal: str, target_url: str, capability_name: str, description: str):
+async def run_discovery(goal: str, target_url: str, capability_name: str, description: str, params: dict = None):
     """Run LLM-driven discovery to create an automation artifact."""
     logger.info("Starting discovery mode", goal=goal, target_url=target_url)
     
     try:
         orchestrator = AgentOrchestrator()
-        artifact = await orchestrator.execute_goal(goal, target_url, capability_name, description)
+        artifact = await orchestrator.execute_goal(goal, target_url, capability_name, description, parameters=params)
         
         # Save artifact
         from src.utils.config import Config
@@ -118,6 +118,7 @@ async def main():
     discovery_parser.add_argument("--target-url", required=True, help="Target application URL")
     discovery_parser.add_argument("--capability-name", required=True, help="Name for the capability")
     discovery_parser.add_argument("--description", required=True, help="Description of the capability")
+    discovery_parser.add_argument("--params", help="Parameters as JSON string")
     
     # Replay mode
     replay_parser = subparsers.add_parser("replay", help="Run deterministic replay")
@@ -137,7 +138,9 @@ async def main():
         sys.exit(1)
     
     if args.mode == "discovery":
-        await run_discovery(args.goal, args.target_url, args.capability_name, args.description)
+        import json
+        params = json.loads(args.params) if getattr(args, "params", None) else None
+        await run_discovery(args.goal, args.target_url, args.capability_name, args.description, params=params)
     elif args.mode == "replay":
         import json
         params = json.loads(args.params) if args.params else {}
