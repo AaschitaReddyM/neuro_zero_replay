@@ -64,9 +64,23 @@ The automation artifact (`src/artifact/schemas.py`) acts as an executable semant
     }
   },
   "outputs": {
-    "account_details": {
+    "member_name": {
       "type": "string",
-      "description": "Extracted outcome details"
+      "description": "Member's full name",
+      "extract": {
+        "selector": "#lookup-result",
+        "regex": "Name:\\s*([^\\n\\t]+)",
+        "group": 1
+      }
+    },
+    "savings_balance": {
+      "type": "number",
+      "description": "Member savings account balance",
+      "extract": {
+        "selector": "#lookup-result",
+        "regex": "Balance:\\s*\\$?([\\d,.]+)",
+        "group": 1
+      }
     }
   },
   "steps": [
@@ -109,13 +123,23 @@ The automation artifact (`src/artifact/schemas.py`) acts as an executable semant
       "step_id": 4,
       "action_type": "extract",
       "target": { "strategy": "semantic_selector", "value": "#lookup-result" },
-      "output_key": "account_details",
-      "description": "Extract outcome details from #lookup-result",
+      "output_key": "member_name",
+      "regex": "Name:\\s*([^\\n\\t]+)",
+      "description": "Extract member_name from #lookup-result",
+      "risk_level": "safe"
+    },
+    {
+      "step_id": 5,
+      "action_type": "extract",
+      "target": { "strategy": "semantic_selector", "value": "#lookup-result" },
+      "output_key": "savings_balance",
+      "regex": "Balance:\\s*\\$?([\\d,.]+)",
+      "description": "Extract savings_balance from #lookup-result",
       "risk_level": "safe"
     }
   ],
   "checkpoint": {
-    "step_id": 4,
+    "step_id": 5,
     "condition": {
       "type": "element_visible",
       "target": { "strategy": "semantic_selector", "value": "#lookup-result" },
@@ -147,8 +171,8 @@ The automation artifact (`src/artifact/schemas.py`) acts as an executable semant
 
 ### Design Rationale
 - **Parameterized Placeholders**: Values typed during discovery matching input parameters are abstracted as `{{parameter_name}}`, enabling dynamic replay across different records.
-- **Invariant Container Targeting**: For data extraction, targets are generalized to structural containers (e.g. `#lookup-result`) rather than ephemeral text nodes, ensuring successful extraction regardless of dynamic balances.
-- **Disjoint Business Rules vs Error Handlers**: Business outcome indicators are isolated in `business_outcome_rules` rather than conflated with technical runtime errors.
+- **1-to-1 Extraction & Self-Describing Output Schema**: Each declared output corresponds strictly to an explicit `EXTRACT` step (`outputs.keys() == {s.output_key for extract steps}`). Outputs define an optional `extract: {selector, regex, group}` contract, allowing the deterministic engine to parse fields out of multi-field UI cards with regular expression extraction and apply type coercion (`number` parsed as numeric float stripping currency/commas, `boolean` as bool, strings stripped of tabs and newlines).
+- **Disjoint Business Rules vs Error Handlers**: Business outcome indicators are isolated in `business_outcome_rules` with mandatory explicit `selector` attributes, rather than conflated with technical runtime errors.
 
 ---
 

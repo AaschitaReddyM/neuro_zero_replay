@@ -23,11 +23,12 @@
   "outputs": {
     "account_status": {
       "type": "string",
-      "description": "Current account status"
-    },
-    "available_actions": {
-      "type": "array",
-      "description": "List of available management actions"
+      "description": "Current account status",
+      "extract": {
+        "selector": "#account-result",
+        "regex": "Account Status:\\s*([A-Za-z]+)",
+        "group": 1
+      }
     }
   },
   "steps": [
@@ -129,6 +130,7 @@
       },
       "value": null,
       "output_key": "account_status",
+      "regex": "Account Status:\\s*([A-Za-z]+)",
       "description": "Extract account status information",
       "wait_after": null,
       "risk_level": "safe"

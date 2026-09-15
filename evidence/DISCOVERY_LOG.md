@@ -52,3 +52,9 @@ The target application is a core-banking web portal running on `http://localhost
 - Full Transcript: `evidence/discovery_run_20260914_234448/transcript.json`
 - Step Screenshots: `evidence/discovery_run_20260914_234448/*.png`
 - Console Log: `evidence/discovery_run.log`
+
+### Post-Discovery Output Contract Standardization (Round 2 Remediation)
+In accordance with Round 2 audit remediation (Phase R4), artifact outputs were refined to enforce a strict 1-to-1 bijection between declared output schemas and extraction steps (`outputs.keys() == {s.output_key for extract steps}`):
+- Rather than extracting a single multi-field text block (`account_details`), 4 discrete extraction steps (`member_name`, `savings_balance`, `account_type`, `status`) were defined with explicit extraction regexes and numeric type coercion (`savings_balance` parsed as numeric float).
+- In `transfer_funds.json`, `confirmation_number` was configured with an explicit regex `Confirmation Number:\s*(TXN\d+)` to return cleanly coerced transaction IDs matching `^TXN\d+$` rather than an unparsed HTML dump.
+- In `account_management.json`, `account_status` was aligned 1-to-1 with its extraction step.

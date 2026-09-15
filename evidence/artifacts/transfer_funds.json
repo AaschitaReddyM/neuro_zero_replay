@@ -35,11 +35,12 @@
   "outputs": {
     "confirmation_number": {
       "type": "string",
-      "description": "Transaction confirmation number"
-    },
-    "status": {
-      "type": "string",
-      "description": "Transfer status (completed, failed, pending)"
+      "description": "Transaction confirmation number",
+      "extract": {
+        "selector": "#transfer-result",
+        "regex": "Confirmation Number:\\s*(TXN\\d+)",
+        "group": 1
+      }
     }
   },
   "steps": [
@@ -177,6 +178,7 @@
       },
       "value": null,
       "output_key": "confirmation_number",
+      "regex": "Confirmation Number:\\s*(TXN\\d+)",
       "description": "Extract confirmation number from results",
       "wait_after": null,
       "risk_level": "safe"

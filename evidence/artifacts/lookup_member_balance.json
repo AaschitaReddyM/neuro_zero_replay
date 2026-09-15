@@ -21,25 +21,41 @@
     }
   },
   "outputs": {
-    "member_id": {
-      "type": "string",
-      "description": "Extracted output member_id"
-    },
     "member_name": {
       "type": "string",
-      "description": "Extracted output member_name"
+      "description": "Member's full name",
+      "extract": {
+        "selector": "#lookup-result",
+        "regex": "Name:\\s*([^\\n\\t]+)",
+        "group": 1
+      }
     },
     "savings_balance": {
-      "type": "string",
-      "description": "Extracted output savings_balance"
+      "type": "number",
+      "description": "Member savings account balance",
+      "extract": {
+        "selector": "#lookup-result",
+        "regex": "Balance:\\s*\\$?([\\d,.]+)",
+        "group": 1
+      }
     },
     "account_type": {
       "type": "string",
-      "description": "Extracted output account_type"
+      "description": "Member account type",
+      "extract": {
+        "selector": "#lookup-result",
+        "regex": "Account Type:\\s*([^\\n\\t]+)",
+        "group": 1
+      }
     },
-    "account_details": {
+    "status": {
       "type": "string",
-      "description": "Extracted output account_details"
+      "description": "Member account status",
+      "extract": {
+        "selector": "#lookup-result",
+        "regex": "Status:\\s*([A-Za-z]+)",
+        "group": 1
+      }
     }
   },
   "steps": [
@@ -76,7 +92,7 @@
       },
       "value": "{{member_id}}",
       "output_key": null,
-      "description": "Enter the member ID 12345 into the Member ID input field to prepare for the search.",
+      "description": "Enter the member ID into the Member ID input field.",
       "wait_after": null,
       "risk_level": "safe"
     },
@@ -96,7 +112,7 @@
       },
       "value": null,
       "output_key": null,
-      "description": "Click the Search button to look up the details for member 12345.",
+      "description": "Click the Search button to look up the member details.",
       "wait_after": null,
       "risk_level": "safe"
     },
@@ -112,14 +128,69 @@
         "resolved_strategy": null
       },
       "value": null,
-      "output_key": "account_details",
-      "description": "Extract outcome details from #lookup-result",
+      "output_key": "member_name",
+      "regex": "Name:\\s*([^\\n\\t]+)",
+      "description": "Extract member_name from #lookup-result",
+      "wait_after": null,
+      "risk_level": "safe"
+    },
+    {
+      "step_id": 5,
+      "action_type": "extract",
+      "target": {
+        "strategy": "semantic_selector",
+        "value": "#lookup-result",
+        "role": null,
+        "name": null,
+        "fallback_strategies": [],
+        "resolved_strategy": null
+      },
+      "value": null,
+      "output_key": "savings_balance",
+      "regex": "Balance:\\s*\\$?([\\d,.]+)",
+      "description": "Extract savings_balance from #lookup-result",
+      "wait_after": null,
+      "risk_level": "safe"
+    },
+    {
+      "step_id": 6,
+      "action_type": "extract",
+      "target": {
+        "strategy": "semantic_selector",
+        "value": "#lookup-result",
+        "role": null,
+        "name": null,
+        "fallback_strategies": [],
+        "resolved_strategy": null
+      },
+      "value": null,
+      "output_key": "account_type",
+      "regex": "Account Type:\\s*([^\\n\\t]+)",
+      "description": "Extract account_type from #lookup-result",
+      "wait_after": null,
+      "risk_level": "safe"
+    },
+    {
+      "step_id": 7,
+      "action_type": "extract",
+      "target": {
+        "strategy": "semantic_selector",
+        "value": "#lookup-result",
+        "role": null,
+        "name": null,
+        "fallback_strategies": [],
+        "resolved_strategy": null
+      },
+      "value": null,
+      "output_key": "status",
+      "regex": "Status:\\s*([A-Za-z]+)",
+      "description": "Extract status from #lookup-result",
       "wait_after": null,
       "risk_level": "safe"
     }
   ],
   "checkpoint": {
-    "step_id": 4,
+    "step_id": 7,
     "condition": {
       "type": "element_visible",
       "target": {

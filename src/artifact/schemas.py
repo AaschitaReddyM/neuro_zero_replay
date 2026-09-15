@@ -93,6 +93,7 @@ class OutputDefinition(BaseModel):
     """Definition of a capability output."""
     type: ParameterType
     description: str
+    extract: Optional[Dict[str, Any]] = None
 
 
 class CheckpointCondition(BaseModel):
@@ -109,6 +110,7 @@ class ActionStep(BaseModel):
     target: TargetLocation
     value: Optional[str] = None
     output_key: Optional[str] = None
+    regex: Optional[str] = None
     description: str
     wait_after: Optional[int] = None  # milliseconds to wait after action
     risk_level: RiskLevel = RiskLevel.SAFE

@@ -23,11 +23,12 @@
   "outputs": {
     "account_status": {
       "type": "string",
-      "description": "Current account status"
-    },
-    "available_actions": {
-      "type": "array",
-      "description": "List of available management actions"
+      "description": "Current account status",
+      "extract": {
+        "selector": "#account-result",
+        "regex": "Account Status:\\s*([A-Za-z]+)",
+        "group": 1
+      }
     }
   },
   "steps": [
@@ -129,6 +130,7 @@
       },
       "value": null,
       "output_key": "account_status",
+      "regex": "Account Status:\\s*([A-Za-z]+)",
       "description": "Extract account status information",
       "wait_after": null,
       "risk_level": "safe"
@@ -151,15 +153,6 @@
   },
   "error_handlers": [
     {
-      "error_type": "business_outcome",
-      "fallback_strategy": null,
-      "outcome": "member_not_found",
-      "condition": {
-        "text_contains": "Member not found"
-      },
-      "description": "Handle non-existent member"
-    },
-    {
       "error_type": "element_not_found",
       "fallback_strategy": "text_content_match",
       "outcome": null,
@@ -174,6 +167,14 @@
         "text_contains": "permission"
       },
       "description": "Handle insufficient permissions for account management"
+    }
+  ],
+  "business_outcome_rules": [
+    {
+      "outcome": "member_not_found",
+      "selector": "#account-result",
+      "text_contains": "Member not found",
+      "description": "Handle non-existent member"
     }
   ]
 }

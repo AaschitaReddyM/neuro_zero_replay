@@ -3,12 +3,13 @@ from typing import Dict, Any, Optional, Tuple
 import time
 import json
 import asyncio
+import re
 from pathlib import Path
 from src.automation.browser import BrowserAutomation
 from src.artifact.schemas import (
     AutomationArtifact, ExecutionResult, ExecutionStatus, ErrorType, 
     ActionType, CheckpointCondition, BusinessOutcomeRule, RiskLevel,
-    RunOptions
+    RunOptions, ParameterType
 )
 from src.safety.guardrails import SafetyGuardrails
 from src.safety.escalation import EscalationManager, InterventionRequest
@@ -165,7 +166,51 @@ class ReplayEngine:
                     
                     # Store output if this is an extract action
                     if step.action_type == ActionType.EXTRACT and step.output_key:
-                        outputs[step.output_key] = result
+                        raw_val = result
+                        out_def = artifact.outputs.get(step.output_key)
+                        
+                        # Apply regex extraction if specified on step or output definition
+                        regex = getattr(step, "regex", None)
+                        group_idx = 1
+                        if not regex and out_def and out_def.extract:
+                            regex = out_def.extract.get("regex")
+                            group_idx = out_def.extract.get("group", 1)
+                            
+                        if regex and raw_val:
+                            m = re.search(regex, str(raw_val))
+                            if m:
+                                raw_val = m.group(group_idx) if len(m.groups()) >= group_idx else (m.group(1) if m.groups() else m.group(0))
+                            else:
+                                logger.warning("Extract regex did not match raw value", key=step.output_key, regex=regex)
+                                
+                        # Type coercion
+                        coerced_val = raw_val
+                        if out_def:
+                            if out_def.type == ParameterType.NUMBER:
+                                # Strip currency symbols, commas, and whitespace
+                                cleaned = re.sub(r"[^\d.-]", "", str(raw_val).strip()) if raw_val is not None else ""
+                                try:
+                                    if "." in cleaned:
+                                        coerced_val = float(cleaned)
+                                    else:
+                                        coerced_val = int(cleaned)
+                                except Exception:
+                                    observed_msg = f"could not coerce '{raw_val}' to number"
+                                    logger.error("Output type coercion failed", key=step.output_key, error=observed_msg)
+                                    error = observed_msg
+                                    error_step = step.step_id
+                                    error_expected = f"Output '{step.output_key}' to be a valid number"
+                                    error_observed = observed_msg
+                                    break
+                            elif out_def.type == ParameterType.BOOLEAN:
+                                s = str(raw_val).strip().lower()
+                                coerced_val = s in ("true", "yes", "1", "t", "y")
+                            elif out_def.type == ParameterType.STRING:
+                                coerced_val = re.sub(r"[\t\n\r]+", " ", str(raw_val)).strip() if raw_val is not None else ""
+                        elif isinstance(coerced_val, str):
+                            coerced_val = re.sub(r"[\t\n\r]+", " ", coerced_val).strip()
+
+                        outputs[step.output_key] = coerced_val
                         
                     # Wait if specified
                     if step.wait_after:
