@@ -1,438 +1,180 @@
 <p align="center">
-  <img src="assets/logo.png" alt="NeuroZero Replay Logo" width="160" />
+  <img src="assets/logo.png" alt="NeuroZero Replay Logo" width="140" />
 </p>
 
 <h1 align="center">NeuroZero Replay: Agentic Computer-Use & Deterministic Replay Engine</h1>
 
 <p align="center">
-  <strong>Autonomous LLM Discovery • Zero-LLM Deterministic Replay • Enterprise FinTech Automation</strong>
+  <strong>Autonomous LLM Discovery • Zero-LLM Deterministic Replay • Playwright Core</strong>
 </p>
 
 <p align="center">
   <a href="https://github.com/AaschitaReddyM/neuro_zero_replay/actions"><img src="https://github.com/AaschitaReddyM/neuro_zero_replay/actions/workflows/ci.yml/badge.svg" alt="CI Pipeline" /></a>
-  <a href="https://www.python.org/downloads/release/python-3110/"><img src="https://img.shields.io/badge/Python-3.10%20%7C%203.11-blue?style=flat-square&logo=python" alt="Python Version" /></a>
+  <a href="https://www.python.org/downloads/"><img src="https://img.shields.io/badge/Python-3.10%20%7C%203.11%20%7C%203.12-blue?style=flat-square&logo=python" alt="Python Version" /></a>
   <a href="https://playwright.dev/python/"><img src="https://img.shields.io/badge/Playwright-Automated-green?style=flat-square" alt="Playwright" /></a>
-  <a href="#system-architecture-flow"><img src="https://img.shields.io/badge/Replay-Zero--LLM%20Deterministic-purple?style=flat-square" alt="Zero-LLM Replay" /></a>
-  <a href="TARGET_APPLICATION_GUIDE.md"><img src="https://img.shields.io/badge/Domain-FinTech%20%26%20Banking-0052cc?style=flat-square" alt="FinTech Banking" /></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-yellow?style=flat-square" alt="License" /></a>
 </p>
 
-A production-ready computer-use automation platform that enables LLM-driven UI discovery with zero-LLM deterministic replay capabilities, purpose-built for financial workflows (member lookup, funds transfer, and account management).
+---
 
+## Executive Summary
 
-## Overview
-
-This system demonstrates a complete end-to-end workflow for AI agents to interact with UIs that lack APIs:
-
-1. **Discovery Phase**: An LLM explores a target application to accomplish a goal, recording each action
-2. **Artifact Generation**: The successful run is converted into a structured, reusable capability artifact
-3. **Deterministic Replay**: The artifact can be replayed reliably without LLM involvement
-4. **Error Handling**: Runtime errors and business outcomes are detected and handled appropriately
-5. **Safety & Escalation**: Guardrails enforce policies, with human handoff when needed
-6. **Artifact Marketplace**: Directory system for managing multiple automation capabilities
-7. **Performance Metrics**: Confidence scoring and execution analytics
-8. **Production Deployment**: Docker containerization and orchestration support
-
-## Key Differentiators
-
-**Enterprise-Grade Features:**
-- **Multi-Artifact Support**: 3 complete automation capabilities (lookup, transfer, account management)
-- **Artifact Marketplace**: Centralized management with search and validation
-- **Performance Analytics**: Confidence scoring, success rates, and execution metrics
-- **Production Deployment**: Docker containerization with Docker Compose orchestration
-- **Scalability Architecture**: Designed for multi-process deployment and horizontal scaling
-- **Comprehensive Testing**: Integration tests, error scenario coverage, and validation suites
-
-## Performance & Cost Benchmark
-
-| Metric | Traditional LLM-in-the-Loop | NeuroZero Replay (Deterministic) | Improvement |
-| :--- | :---: | :---: | :---: |
-| **Execution Latency** | ~3,500ms – 6,200ms | **120ms – 350ms** | **95%+ Faster** |
-| **Inference Cost / Run** | ~$0.03 – $0.06 per execution | **$0.0000** | **100% Cost Reduction** |
-| **Determinism & Consistency** | Non-deterministic (LLM drift) | **100% Deterministic** | **Zero Hallucination** |
-| **Concurrency Scaling** | Blocked by LLM rate limits | **Horizontally scalable worker pool** | **Linear Multi-Tenant Scale** |
-| **Audit & Governance** | Unpredictable prompt paths | **Static JSON schema contract** | **Enterprise Compliance** |
-
-## System Architecture Flow
+NeuroZero Replay is an enterprise automation platform designed for applications that lack programmatic APIs. It operates across two complementary phases:
+1. **Autonomous Discovery (LLM)**: An AI agent observes the live accessibility tree and DOM, reasons over user intent, navigates forms, parameterizes inputs (`{{member_id}}`), and records a structured, reusable capability artifact.
+2. **Zero-LLM Deterministic Replay**: The generated artifact is replayed with native Playwright locators (`get_by_role`, `get_by_label`, `get_by_text`) and auto-waiting—completely bypassing the LLM to deliver fast, low-cost, and deterministic execution.
 
 ```mermaid
 flowchart TD
-    subgraph Discovery_Phase ["Phase 1: Goal-Driven Discovery (LLM)"]
+    subgraph Discovery_Phase ["Phase 1: Autonomous LLM Discovery"]
         A[User Goal / Intent] --> B[Agent Orchestrator]
-        B --> C[Playwright Browser Automation]
-        C --> D[Target Banking Portal :8080]
-        D --> E[DOM & Accessibility Tree State]
-        E --> F[LLM Client GPT-4o Decision]
-        F -->|Observe-Decide-Act| B
+        B --> C[Browser Automation Layer (Playwright)]
+        C --> D[Target Web Application :8080]
+        D --> E[Accessibility Tree & DOM Snapshot]
+        E --> F[LLM Client (Gemini / OpenAI)]
+        F -->|Observe-Decide-Act Loop| B
     end
 
-    subgraph Compilation ["Artifact Serialization"]
-        B -->|Success Recorded| G[Capability Artifact JSON]
-        G --> H[Artifact Marketplace & Validation]
+    subgraph Artifact_Compilation ["Contract Compilation"]
+        B -->|Checkpoint Verified| G[Automation Artifact JSON]
+        G --> H[Artifact Marketplace & Schema Validation]
     end
 
     subgraph Replay_Phase ["Phase 2: Zero-LLM Deterministic Replay"]
         H --> I[Replay Engine]
-        I --> J[Parameter Substitution]
-        J --> K[Playwright Execution Engine]
-        K --> L[Location Strategy Fallbacks]
-        L --> M[Checkpoint Validation]
-        M --> N[Structured Financial Outputs]
+        I --> J[Parameter Substitution & Allowlist Validation]
+        J --> K[Playwright Native Locators]
+        K --> L[Actionability Auto-Waiting & Strategy Fallbacks]
+        L --> M[Checkpoint & Business Outcome Verification]
+        M --> N[Structured ExecutionResult]
     end
 ```
 
-## Target Application & Interactive Workflows
+---
 
-The system includes a fully functional financial services portal (`target-app/index.html`) running on `http://localhost:8080` designed to benchmark computer-use automation.
+## Prerequisites & Installation
 
-<p align="center">
-  <img src="assets/ui_preview.png" alt="NeuroZero Banking Portal UI" width="700" style="border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.15);" />
-</p>
+### 1. Requirements
+- Python 3.10, 3.11, or 3.12
+- Node.js runtime (for Playwright browser engines)
+- Google Gemini API Key or OpenAI API Key (only required for Phase 1 Discovery; Replay runs 100% locally with zero API keys)
 
-### Workflow Breakdown & Interactive Locators
-
-| Workflow | UI Controls & Inputs | Playwright Locator | Risk Tier | Business vs. System Handling |
-| :--- | :--- | :--- | :---: | :--- |
-| **Member Balance Lookup** | `#member-id`, `Search`, `Clear` | `role=button[name="Search"]` | `SAFE` | Emits `Member Found` with balance table or handles `member_not_found` outcome. |
-| **Funds Transfer** | `#from-account`, `#to-account`, `#amount` | `role=button[name="Transfer"]` | `RISKY` | Policy guardrail requires confirmation; dynamic wait for async `TXN` hash. |
-| **Account Management** | `#account-mgmt-id`, `Freeze Account` | `role=button[name="Freeze Account"]` | `CRITICAL`| Triggers **Human-in-the-Loop Escalation** gate before modifying account status. |
-| **Logo Lightbox** | `.header-logo` | `role=img[name="NeuroZero Replay Logo"]`| `SAFE` | Opens full-resolution architecture modal and system specs. |
-
-> 📖 **Full Developer Specification:** See [TARGET_APPLICATION_GUIDE.md](TARGET_APPLICATION_GUIDE.md) for the complete DOM locator specification, state machine diagrams, and mock database records.
-
-
-## Architecture
-
-The system is organized into clear modules with well-defined boundaries:
-
-- **Agent Orchestrator**: Manages the LLM-driven discovery loop
-- **Browser Automation**: Playwright-based UI interaction with multiple location strategies
-- **Artifact System**: Structured schemas for recording and replaying automation
-- **Safety Layer**: Allowlist enforcement, risk assessment, and data redaction
-- **Escalation Manager**: Human-in-the-loop intervention and control transfer
-
-## Setup
-
-### Prerequisites
-
-- Python 3.8+
-- Node.js (for Playwright browsers)
-- OpenAI API key
-
-### Installation
-
-1. Clone the repository and navigate to the project directory
-
-2. Install Python dependencies:
+### 2. Setup
 ```bash
+# Clone the repository
+git clone https://github.com/AaschitaReddyM/neuro_zero_replay.git
+cd neuro_zero_replay
+
+# Create virtual environment and install dependencies
+python -m venv .venv
+# On Windows:
+.venv\Scripts\activate
+# On Linux/macOS:
+source .venv/bin/activate
+
 pip install -r requirements.txt
-```
+playwright install --with-deps chromium
 
-3. Install Playwright browsers:
-```bash
-playwright install chromium
-```
-
-4. Configure environment variables:
-```bash
+# Configure environment
 cp .env.example .env
-# Edit .env and add your OPENAI_API_KEY
+# Edit .env and configure your GEMINI_API_KEY or OPENAI_API_KEY
 ```
 
-### Target Application
+---
 
-The project includes a mock banking application in `target-app/index.html`. To run it:
+## End-to-End Execution Walkthrough
 
+All commands below are directly runnable against the included target application.
+
+### Step 1: Start the Target Application
+Start the core banking portal on `http://localhost:8080`:
 ```bash
-# Using Python's built-in server
-cd target-app
-python -m http.server 8080
+python -m http.server 8080 --directory target-app
 ```
+*(Leave running in a background terminal or use a separate window)*
 
-The application will be available at `http://localhost:8080`
-
-## Usage
-
-### Quick Start with All Artifacts
-
-Generate all available automation artifacts:
-
-```bash
-# Generate member lookup artifact
-python mock_discovery.py
-
-# Generate transfer funds artifact
-python mock_discovery_transfer.py
-
-# Generate account management artifact
-python mock_discovery_account.py
-```
-
-### Discovery Mode
-
-Run LLM-driven discovery to create an automation artifact:
-
+### Step 2: Live LLM Capability Discovery
+Run autonomous discovery to generate a parameterized artifact:
 ```bash
 python main.py discovery \
   --goal "Look up member 12345 and read their current savings balance" \
-  --target-url "http://localhost:8080" \
-  --capability-name "lookup_member_balance" \
-  --description "Look up a member by ID and retrieve their account balance"
+  --target-url http://localhost:8080 \
+  --capability-name lookup_member_balance \
+  --description "Look up member account balance and profile information"
 ```
+- **What happens**: The LLM inspects the accessibility tree, fills the Member ID field, clicks Search, extracts the balance, verifies the `#lookup-result` checkpoint, and persists `evidence/artifacts/lookup_member_balance.json` with per-step screenshots in `evidence/discovery_run_<ts>/`.
 
-This will:
-- Launch a browser (visible for observation)
-- Use the LLM to navigate and interact with the target app
-- Record each action taken
-- Generate a structured artifact JSON file
-- Save it to `evidence/artifacts/{capability_name}.json`
-
-**Note**: For demonstration purposes, mock discovery scripts are provided that simulate the LLM-driven discovery process without requiring an actual OpenAI API key.
-
-### Artifact Marketplace
-
-Explore and manage automation capabilities:
-
-```bash
-python -c "from src.artifact.marketplace import ArtifactMarketplace; m = ArtifactMarketplace(); print(m.generate_marketplace_report())"
-```
-
-This will show:
-- All available artifacts with metadata
-- Parameter and output definitions
-- Error handler coverage
-- Validation status
-
-### Replay Mode
-
-Run deterministic replay of an existing artifact:
-
+### Step 3: Deterministic Replay (Success Path)
+Replay the generated artifact with a different member (`67890` - Jane Johnson) with zero LLM calls:
 ```bash
 python main.py replay \
   --artifact evidence/artifacts/lookup_member_balance.json \
-  --params '{"member_id": "12345"}'
+  --params '{"member_id":"67890"}'
 ```
+- **Observed Result**: Executes in ~1.8s. Emits status `success`, extracts Jane Johnson's `$12,500.00` checking balance, and verifies checkpoint.
 
-This will:
-- Load the artifact
-- Execute each step deterministically (no LLM involved)
-- Handle errors using defined fallback strategies
-- Verify checkpoints
-- Return structured results with outputs
-- Record performance metrics
-
-### Performance Monitoring
-
-View artifact performance metrics and confidence scores:
-
+### Step 4: Business Outcome Detection
+Replay with a non-existent member ID (`99999`):
 ```bash
-python -c "from src.artifact.metrics import metrics_collector; print(metrics_collector.generate_performance_report())"
+python main.py replay \
+  --artifact evidence/artifacts/lookup_member_balance.json \
+  --params '{"member_id":"99999"}'
 ```
+- **Observed Result**: Emits status `business_outcome` with identifier `member_not_found`. Intercepted cleanly without triggering false technical alarms or timeouts.
 
-### Docker Deployment
-
-Run the entire system in containers:
-
+### Step 5: Policy Risk Gating
+Attempt to execute the account freeze capability without approval:
 ```bash
-# Build and start all services
-docker-compose up -d
-
-# View logs
-docker-compose logs -f
-
-# Execute automation in container
-docker-compose exec automation-worker python mock_discovery.py
-
-# Stop services
-docker-compose down
+python main.py replay \
+  --artifact evidence/artifacts/account_management.json \
+  --params '{"member_id":"12345"}'
 ```
-
-## Real-World Scenarios
-
-This system is designed to handle realistic automation challenges in production environments:
-
-### Scenario 1: Legacy Banking System
-**Challenge**: Look up customer information in a 15-year-old banking portal with table-based layouts, no test IDs, and frequent UI changes.
-
-**Solution**: The system uses accessibility tree selectors as the primary strategy, with fallbacks to semantic selectors and text content matching. This provides resilience against UI changes while maintaining accuracy.
-
-**Example Artifact**: `lookup_member_balance.json` demonstrates handling member lookup with business outcome detection for "member not found" scenarios.
-
-### Scenario 2: Multi-Tenant SaaS Platform
-**Challenge**: The same capability needs to work across 50 different tenant instances, each with slightly different configurations and branding.
-
-**Solution**: Artifacts use parameter substitution and include optional tenant_id and app_version fields. A single artifact can be recorded on a "canonical" tenant and reused across others with tenant-specific overrides.
-
-**Error Handling**: The system distinguishes between system failures (timeout, permission denied) and legitimate business outcomes (record not found, validation errors), ensuring appropriate handling in each case.
-
-### Scenario 3: Session Management
-**Challenge**: Banking sessions expire after 15 minutes of inactivity, requiring re-authentication during long-running processes.
-
-**Solution**: The artifact includes session_expired error handlers with retry_with_refresh fallback strategies. The replay engine can detect session timeouts and attempt recovery before escalating to human intervention.
-
-### Scenario 4: Compliance and Auditing
-**Challenge**: All automation must be fully auditable with sensitive data redacted from logs and evidence.
-
-**Solution**: The safety layer automatically redacts sensitive fields (passwords, SSNs, account numbers) from logs, artifacts, and intervention requests. Every action is recorded with timestamps and context for compliance auditing.
-
-## Project Structure
-
-```
-assessment/
-├── src/
-│   ├── agent/           # LLM integration and orchestration
-│   ├── automation/      # Browser automation layer
-│   ├── artifact/        # Artifact schemas and replay engine
-│   ├── safety/          # Guardrails and escalation
-│   └── utils/           # Configuration and logging
-├── target-app/          # Mock banking application
-├── evidence/            # Artifacts and execution logs
-├── logs/                # System logs
-├── main.py              # Entry point
-├── requirements.txt     # Python dependencies
-├── .env.example         # Environment variables template
-└── README.md            # This file
-```
-
-## Key Design Decisions
-
-### Element Location Strategy
-
-The system prioritizes **accessibility tree** selectors over DOM selectors because:
-- More stable across legacy applications
-- Works on desktop applications via accessibility APIs
-- Less brittle to UI changes
-- Better aligns with how screen readers interact with apps
-
-Fallback strategies include semantic selectors, text content matching, and visual coordinates.
-
-### Error Classification
-
-The system explicitly separates:
-- **Business outcomes**: Legitimate results like "member not found"
-- **Recoverable conditions**: Transient issues like dialogs or timeouts
-- **Hard failures**: System errors that require intervention
-
-This prevents conflating expected business results with system failures.
-
-### Human Handoff
-
-A minimal but real handoff mechanism is implemented:
-- Detects stuck states (max steps, consecutive failures)
-- Pauses automation and captures context
-- Transfers control to human operator
-- Records human actions for transparency
-- Returns control when human indicates completion
-
-The operator console is mocked for this demo, but the control transfer logic is genuine.
-
-### Surface Abstraction
-
-The architecture is designed for web implementation but abstracted for future desktop support:
-- `BrowserAutomation` interface could be extended to `DesktopAutomation`
-- Artifact schema is surface-agnostic
-- Location strategies work across different UI paradigms
-
-## Safety Features
-
-- **Allowlist enforcement**: Only permitted domains and action types
-- **Risk classification**: Actions assessed as safe/reversible/risky/irreversible
-- **Data redaction**: Sensitive fields automatically redacted from logs
-- **Confirmation requirements**: Risky actions require human approval
-
-## Evidence Collection
-
-The system automatically captures:
-- Structured logs of all actions and decisions
-- Screenshots at key steps and during interventions
-- Accessibility tree snapshots for debugging
-- Full execution traces for both discovery and replay
-
-Evidence is stored in the `/evidence/` directory with clear organization.
-
-## Limitations and Future Work
-
-### Current Limitations
-
-- Single-process architecture (designed for scale but not implemented)
-- Mock operator console (real co-browsing would require WebSocket infrastructure)
-- Basic goal completion detection (could be enhanced with semantic understanding)
-- Limited multi-tenant support (schema supports it, but no tenant management system)
-
-### Future Enhancements
-
-- **Multi-process architecture**: Queue-based execution for scale
-- **Agent-facing API**: Expose artifacts as callable capabilities via function-calling
-- **Code generation**: Emit runnable test scripts from artifacts
-- **Confidence scoring**: Rate artifacts by replay reliability
-- **Canonicalization**: Normalize concrete values into parameterized patterns
-- **Desktop support**: Extend to native desktop applications
-
-## Testing
-
-The project includes comprehensive testing without requiring full browser automation:
-
+- **Observed Result**: Halts at Step 6 (`Freeze Account`) with status `needs_confirmation` and captures an audit screenshot.
+- **To authorize execution**:
 ```bash
-# Test artifact structure and validation
-python test_replay.py
-
-# Test error scenarios and business outcome handling
-python test_error_scenarios.py
+python main.py replay \
+  --artifact evidence/artifacts/account_management.json \
+  --params '{"member_id":"12345"}' \
+  --approve-risky
 ```
 
-These tests validate:
-- Artifact schema compliance
-- Parameter validation and substitution
-- Error handler logic and matching
-- Checkpoint structure and validation
-- Risk assessment methodology
-- Business outcome detection
-
-## Evidence
-
-All evidence from the development and testing process is stored in the `/evidence/` directory:
-
-- **artifacts/**: Generated automation capability artifacts
-- **DISCOVERY_LOG.md**: Documentation of the discovery phase
-- **REPLAY_LOG.md**: Documentation of the replay testing phase
-- **SUMMARY.md**: Overall evidence summary and compliance
-
-Run the included demo scenario:
-
-1. Start the target application:
+### Step 6: Run Verification Test Suite
 ```bash
-cd target-app && python -m http.server 8080
+# Run pytest suite (20 tests covering taxonomy, safety, discovery contracts, and escalation)
+python -m pytest -v
+
+# Run baseline probe audit
+python tests/probe_audit.py
 ```
 
-2. In another terminal, run mock discovery (simulates LLM-driven discovery):
-```bash
-python mock_discovery.py
-```
+---
 
-3. Run artifact validation tests:
-```bash
-python test_replay.py
-```
+## Core System Architecture & Modules
 
-4. Run error scenario tests:
-```bash
-python test_error_scenarios.py
-```
+| Module | Location | Primary Responsibilities |
+| :--- | :--- | :--- |
+| **Agent Orchestrator** | `src/agent/orchestrator.py` | Observe-decide-act loop, input parameterization (`{{member_id}}`), transcript logging. |
+| **LLM Client** | `src/agent/llm_client.py` | Asynchronous REST integration for Google Gemini and OpenAI; JSON schema enforcement. |
+| **Browser Automation** | `src/automation/browser.py` | Playwright abstraction, native locators (`get_by_role`, `get_by_label`), auto-waiting. |
+| **Replay Engine** | `src/artifact/replay_engine.py` | Zero-LLM deterministic replay, parameter substitution, checkpoint verification. |
+| **Safety Guardrails** | `src/safety/guardrails.py` | Pre-navigation & post-action domain allowlists, risk gating, recursive PII redaction. |
+| **Escalation Manager** | `src/safety/escalation.py` | Control transfer state machine, session keeping, intervention records, resume signaling. |
+| **Artifact Marketplace**| `src/artifact/marketplace.py`| Cataloging, metadata indexing, and capability discovery. |
 
-## Troubleshooting
+---
 
-### Playwright browser installation
-If you encounter browser errors, try:
-```bash
-playwright install --force chromium
-```
+## Evidence & Verification Logs
 
-### OpenAI API errors
-Ensure your API key is valid and has sufficient credits. The system uses GPT-4o.
+Real execution records generated from local test runs:
+- `evidence/artifacts/lookup_member_balance.json`: The live-discovered parameterized artifact.
+- `evidence/discovery_run_20260914_234448/`: Per-step screenshots and JSON transcript from live Gemini discovery.
+- `evidence/discovery_run.log`: Console execution trace of discovery run.
+- `evidence/replay_success_run.log`: Replay execution log for member `67890` (Jane Johnson).
+- `evidence/replay_business_outcome_run.log`: Replay log demonstrating `member_not_found` business outcome handling.
+- `evidence/replay_escalation_run.log`: Replay log demonstrating live human escalation and session resumption.
+- `evidence/interventions/`: Structured intervention audit records.
 
-### Target application not accessible
-Ensure the target app server is running and accessible at the configured URL.
+---
 
 ## License
 
-This project is submitted as part of a job application assessment and is not intended for production use or distribution.
+This project is licensed under the MIT License — see the [LICENSE](LICENSE) file for details.

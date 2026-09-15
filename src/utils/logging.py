@@ -6,6 +6,15 @@ from typing import Any
 from src.utils.config import Config
 
 
+def redaction_processor(logger: Any, method_name: str, event_dict: dict[str, Any]) -> dict[str, Any]:
+    """Structlog processor that recursively redacts sensitive PII from all log events."""
+    try:
+        from src.safety.guardrails import redact_sensitive_data
+        return redact_sensitive_data(event_dict)
+    except Exception:
+        return event_dict
+
+
 def setup_logging() -> structlog.stdlib.BoundLogger:
     """Configure structured logging for the application."""
     # Ensure log directory exists
@@ -29,6 +38,7 @@ def setup_logging() -> structlog.stdlib.BoundLogger:
             structlog.processors.StackInfoRenderer(),
             structlog.processors.format_exc_info,
             structlog.processors.UnicodeDecoder(),
+            redaction_processor,
             structlog.processors.JSONRenderer()
         ],
         context_class=dict,

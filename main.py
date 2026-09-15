@@ -11,14 +11,21 @@ from src.utils.logging import setup_logging
 # Setup logging
 logger = setup_logging()
 
+if sys.platform == "win32":
+    try:
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+        sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+    except Exception:
+        pass
 
-async def run_discovery(goal: str, target_url: str, capability_name: str, description: str):
+
+async def run_discovery(goal: str, target_url: str, capability_name: str, description: str, params: dict = None):
     """Run LLM-driven discovery to create an automation artifact."""
     logger.info("Starting discovery mode", goal=goal, target_url=target_url)
     
     try:
         orchestrator = AgentOrchestrator()
-        artifact = await orchestrator.execute_goal(goal, target_url, capability_name, description)
+        artifact = await orchestrator.execute_goal(goal, target_url, capability_name, description, parameters=params)
         
         # Save artifact
         from src.utils.config import Config
@@ -55,7 +62,8 @@ async def run_replay(artifact_path: str, parameters: dict):
         
         logger.info("Replay completed", success=result.success, steps=result.steps_completed)
         
-        print(f"\n{'✓' if result.success else '✗'} Replay {'succeeded' if result.success else 'failed'}")
+        print(f"\n{'[SUCCESS]' if result.success else '[COMPLETED]'} Replay {'succeeded' if result.success else 'finished'}")
+        print(f"Status: {result.status.value}")
         print(f"Steps completed: {result.steps_completed}/{len(artifact.steps)}")
         print(f"Execution time: {result.execution_time_seconds:.2f}s")
         
@@ -66,17 +74,23 @@ async def run_replay(artifact_path: str, parameters: dict):
         
         if result.business_outcome:
             print(f"\nBusiness outcome: {result.business_outcome}")
+            if result.evidence_text:
+                print(f"Evidence: {result.evidence_text}")
         
         if result.error:
             print(f"\nError: {result.error}")
             if result.error_step:
                 print(f"Failed at step: {result.error_step}")
+            if result.expected:
+                print(f"Expected: {result.expected}")
+            if result.observed:
+                print(f"Observed: {result.observed}")
         
         return result
         
     except Exception as e:
         logger.error("Replay failed", error=str(e))
-        print(f"\n✗ Replay failed: {str(e)}")
+        print(f"\n[FAILED] Replay failed: {str(e)}")
         sys.exit(1)
 
 
@@ -104,11 +118,14 @@ async def main():
     discovery_parser.add_argument("--target-url", required=True, help="Target application URL")
     discovery_parser.add_argument("--capability-name", required=True, help="Name for the capability")
     discovery_parser.add_argument("--description", required=True, help="Description of the capability")
+    discovery_parser.add_argument("--params", help="Parameters as JSON string")
     
     # Replay mode
     replay_parser = subparsers.add_parser("replay", help="Run deterministic replay")
     replay_parser.add_argument("--artifact", required=True, help="Path to artifact JSON file")
     replay_parser.add_argument("--params", help="Parameters as JSON string")
+    replay_parser.add_argument("--approve-risky", action="store_true", help="Authorize execution of actions marked with risk_level='risky'")
+    replay_parser.add_argument("--escalate", action="store_true", help="Enable human escalation on step failures or risk gating")
     
     args = parser.parse_args()
     
@@ -121,10 +138,16 @@ async def main():
         sys.exit(1)
     
     if args.mode == "discovery":
-        await run_discovery(args.goal, args.target_url, args.capability_name, args.description)
+        import json
+        params = json.loads(args.params) if getattr(args, "params", None) else None
+        await run_discovery(args.goal, args.target_url, args.capability_name, args.description, params=params)
     elif args.mode == "replay":
         import json
         params = json.loads(args.params) if args.params else {}
+        if getattr(args, "approve_risky", False):
+            params["approve_risky"] = True
+        if getattr(args, "escalate", False):
+            params["escalate"] = True
         await run_replay(args.artifact, params)
     else:
         parser.print_help()

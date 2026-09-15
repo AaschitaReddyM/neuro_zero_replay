@@ -63,26 +63,29 @@ class BrowserAutomation:
         await self.page.screenshot(path=path, full_page=True)
         logger.info("Screenshot saved", path=path)
         
-    async def find_element(self, target: TargetLocation) -> Optional[Any]:
-        """Find an element using the specified location strategy with fallbacks."""
+    async def find_element(self, target: TargetLocation, timeout: int = 3000) -> Optional[Any]:
+        """Find a Playwright Locator using the specified location strategy with fallbacks."""
         strategies = [target.strategy] + target.fallback_strategies
         
         for strategy in strategies:
             try:
-                element = await self._find_by_strategy(strategy, target)
-                if element:
-                    logger.info("Element found", strategy=strategy.value)
-                    return element
+                locator = await self._find_by_strategy(strategy, target)
+                if locator is not None:
+                    # Verify element is attached and visible
+                    if await locator.count() > 0:
+                        strategy_name = strategy.value
+                        target.resolved_strategy = strategy_name
+                        logger.info("Element resolved", strategy=strategy_name, role=target.role, name=target.name)
+                        return locator
             except Exception as e:
-                logger.warning("Element not found with strategy", 
-                             strategy=strategy.value, error=str(e))
+                logger.debug("Strategy resolution failed", strategy=strategy.value, error=str(e))
                 continue
                 
-        logger.error("Element not found with any strategy", target=target)
+        logger.error("Element not found with any strategy", target=str(target))
         return None
         
     async def _find_by_strategy(self, strategy: LocationStrategy, target: TargetLocation) -> Optional[Any]:
-        """Find element using a specific strategy."""
+        """Find element using a specific Playwright locator strategy."""
         if strategy == LocationStrategy.ACCESSIBILITY_ROLE:
             return await self._find_by_accessibility(target)
         elif strategy == LocationStrategy.SEMANTIC_SELECTOR:
@@ -90,53 +93,132 @@ class BrowserAutomation:
         elif strategy == LocationStrategy.TEXT_CONTENT:
             return await self._find_by_text(target)
         elif strategy == LocationStrategy.TEST_ID:
-            return await self._find_by_test_id(target)
+            return self._find_by_test_id(target)
         elif strategy == LocationStrategy.XPATH:
-            return await self._find_by_xpath(target)
+            return self._find_by_xpath(target)
         elif strategy == LocationStrategy.CSS_SELECTOR:
-            return await self._find_by_css(target)
+            return self._find_by_css(target)
         else:
             raise ValueError(f"Unknown strategy: {strategy}")
             
     async def _find_by_accessibility(self, target: TargetLocation) -> Optional[Any]:
-        """Find element by accessibility role and name."""
-        # Use Playwright's role selector
-        if target.role and target.name:
-            selector = f"[role=\"{target.role}\"][name=\"{target.name}\"]"
-            return await self.page.query_selector(selector)
-        elif target.role:
-            selector = f"[role=\"{target.role}\"]"
-            return await self.page.query_selector(selector)
+        """Find element by accessibility role and name using Playwright's get_by_role."""
+        if target.role:
+            name = target.name
+            if not name and target.value and ":" in target.value:
+                name = target.value.split(":", 1)[1]
+            if name:
+                loc_exact = self.page.get_by_role(target.role, name=name, exact=True)
+                if await loc_exact.count() > 0:
+                    return loc_exact.first
+            loc = self.page.get_by_role(target.role, name=name, exact=False)
+            if await loc.count() > 0:
+                return loc.first
+        # Fallback to label if role alone or name exists
+        if target.name:
+            loc_exact = self.page.get_by_label(target.name, exact=True)
+            if await loc_exact.count() > 0:
+                return loc_exact.first
+            loc = self.page.get_by_label(target.name, exact=False)
+            if await loc.count() > 0:
+                return loc.first
         return None
         
     async def _find_by_semantic(self, target: TargetLocation) -> Optional[Any]:
-        """Find element by semantic HTML selector."""
-        return await self.page.query_selector(target.value)
+        """Find element by semantic selector, label, or derived ID."""
+        # 1. If target.value is a valid CSS selector (not a composite role:name)
+        if target.value and not (":" in target.value and not target.value.startswith(("#", ".", "["))):
+            try:
+                loc = self.page.locator(target.value)
+                if await loc.count() > 0:
+                    return loc.first
+            except Exception:
+                pass
+                
+        # 2. Try accessible label matching if name is available
+        if target.name:
+            loc_exact = self.page.get_by_label(target.name, exact=True)
+            if await loc_exact.count() > 0:
+                return loc_exact.first
+            loc = self.page.get_by_label(target.name, exact=False)
+            if await loc.count() > 0:
+                return loc.first
+                
+            # 3. Try semantic ID derived from name (e.g., 'Member ID' -> '#member-id')
+            derived_id = f"#{target.name.lower().replace(' ', '-')}"
+            try:
+                loc = self.page.locator(derived_id)
+                if await loc.count() > 0:
+                    return loc.first
+            except Exception:
+                pass
+        return None
         
     async def _find_by_text(self, target: TargetLocation) -> Optional[Any]:
         """Find element by text content."""
-        return await self.page.query_selector(f"text={target.value}")
+        text_val = target.name or target.value
+        if text_val and ":" in text_val and not text_val.startswith(("#", ".")):
+            text_val = text_val.split(":", 1)[1]
+        if text_val:
+            loc_exact = self.page.get_by_text(text_val, exact=True)
+            if await loc_exact.count() > 0:
+                return loc_exact.first
+            loc = self.page.get_by_text(text_val, exact=False)
+            if await loc.count() > 0:
+                return loc.first
+        return None
         
-    async def _find_by_test_id(self, target: TargetLocation) -> Optional[Any]:
-        """Find element by test ID."""
-        return await self.page.get_by_test_id(target.value)
+    def _find_by_test_id(self, target: TargetLocation) -> Optional[Any]:
+        """Find element by test ID (Playwright get_by_test_id is synchronous)."""
+        if target.value:
+            return self.page.get_by_test_id(target.value).first
+        return None
         
-    async def _find_by_xpath(self, target: TargetLocation) -> Optional[Any]:
+    def _find_by_xpath(self, target: TargetLocation) -> Optional[Any]:
         """Find element by XPath."""
-        return await self.page.query_selector(f"xpath={target.value}")
+        if target.value:
+            return self.page.locator(f"xpath={target.value}").first
+        return None
         
-    async def _find_by_css(self, target: TargetLocation) -> Optional[Any]:
+    def _find_by_css(self, target: TargetLocation) -> Optional[Any]:
         """Find element by CSS selector."""
-        return await self.page.query_selector(target.value)
+        if target.value and not (":" in target.value and not target.value.startswith(("#", ".", "["))):
+            return self.page.locator(target.value).first
+        return None
         
-    async def execute_action(self, action_type: ActionType, target: TargetLocation, 
+    async def execute_action(self, action_type: ActionType, target: Optional[TargetLocation] = None, 
                            value: Optional[str] = None) -> Tuple[bool, Optional[str]]:
-        """Execute an action on a target element."""
-        element = await self.find_element(target)
-        if not element:
-            return False, f"Element not found: {target}"
-            
+        """Execute an action with Playwright auto-waiting."""
         try:
+            # Handle non-targeted actions
+            if action_type == ActionType.NAVIGATE:
+                nav_url = value or (target.value if target else "")
+                if not nav_url:
+                    return False, "NAVIGATE requires a target URL"
+                await self.navigate(nav_url)
+                return True, None
+                
+            if action_type == ActionType.WAIT:
+                wait_time = int(value) if value and str(value).isdigit() else 1000
+                if target and target.value and not str(target.value).isdigit():
+                    loc = await self.find_element(target)
+                    if loc:
+                        try:
+                            await loc.wait_for(state="visible", timeout=wait_time)
+                        except Exception:
+                            pass
+                # Always pause for the specified wait duration (e.g. for backend/async processing)
+                await self.page.wait_for_timeout(wait_time)
+                return True, None
+
+            # Targeted actions require a target element
+            if not target:
+                return False, f"Target required for action {action_type.value}"
+                
+            element = await self.find_element(target)
+            if not element:
+                return False, f"Element not found: strategy={target.strategy.value} value='{target.value}'"
+                
             if action_type == ActionType.CLICK:
                 await element.click()
                 logger.info("Click action executed")
@@ -145,19 +227,18 @@ class BrowserAutomation:
                 logger.info("Type action executed", value_length=len(value or ""))
             elif action_type == ActionType.EXTRACT:
                 text = await element.inner_text()
-                logger.info("Extract action executed", text_length=len(text))
-                return True, text
+                # Clean bullet characters or excess formatting if present
+                clean_text = text.replace("●", "").strip()
+                logger.info("Extract action executed", text=clean_text)
+                return True, clean_text
             elif action_type == ActionType.SELECT:
                 await element.select_option(value)
                 logger.info("Select action executed", value=value)
-            elif action_type == ActionType.WAIT:
-                await self.page.wait_for_timeout(int(value) if value else 1000)
-                logger.info("Wait action executed")
             elif action_type == ActionType.SUBMIT:
-                await element.click()  # Submit forms by clicking submit button
+                await element.click()
                 logger.info("Submit action executed")
             elif action_type == ActionType.CONFIRM:
-                await element.click()  # Confirm dialogs by clicking confirm button
+                await element.click()
                 logger.info("Confirm action executed")
             else:
                 return False, f"Unknown action type: {action_type}"
@@ -170,7 +251,7 @@ class BrowserAutomation:
     async def wait_for_element(self, target: TargetLocation, timeout: int = 5000) -> bool:
         """Wait for an element to become visible."""
         try:
-            element = await self.find_element(target)
+            element = await self.find_element(target, timeout=timeout)
             if element:
                 await element.wait_for(state="visible", timeout=timeout)
                 return True
@@ -183,10 +264,32 @@ class BrowserAutomation:
         """Check if a checkpoint condition is met."""
         element = await self.find_element(target)
         if not element:
+            # Fallback: check if the expected text is visible in common result containers
+            if text_contains:
+                try:
+                    for sel in ["#lookup-result", "#transfer-result", "#account-result", ".result"]:
+                        loc = self.page.locator(sel)
+                        if await loc.count() > 0 and await loc.first.is_visible():
+                            txt = await loc.first.inner_text()
+                            if text_contains.lower() in txt.lower():
+                                return True
+                except Exception:
+                    pass
             return False
             
         if text_contains:
             text = await element.inner_text()
-            return text_contains.lower() in text.lower()
+            if text_contains.lower() in text.lower():
+                return True
+            # Check surrounding result card if text is inside the card
+            try:
+                card = self.page.locator("#lookup-result, #transfer-result, #account-result, .result")
+                if await card.count() > 0 and await card.first.is_visible():
+                    card_txt = await card.first.inner_text()
+                    if text_contains.lower() in card_txt.lower():
+                        return True
+            except Exception:
+                pass
+            return False
             
-        return True
+        return await element.is_visible()

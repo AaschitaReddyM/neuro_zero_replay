@@ -2,17 +2,17 @@ name: CI Pipeline
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, "remediation/**" ]
   pull_request:
     branches: [ main ]
 
 jobs:
   test:
-    name: Run Test Suite
-    runs-on: ubuntu-latest
+    name: Test Suite & Live Headless Replay
+    runs-on: ubuntu-22.04
     strategy:
       matrix:
-        python-version: ['3.10', '3.11']
+        python-version: ['3.10', '3.11', '3.12']
 
     steps:
     - name: Checkout Code
@@ -27,19 +27,32 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
+        pip install pytest pytest-asyncio
+
+    - name: Install Playwright Chromium
+      run: |
+        playwright install --with-deps chromium
 
     - name: Setup Environment File
       run: cp .env.example .env
 
-
-    - name: Run Deterministic Replay Tests
+    - name: Start Target App Web Server
       run: |
-        python test_replay.py
+        python -m http.server 8080 --directory target-app &
+        sleep 2
 
-    - name: Run Error Recovery & Business Outcome Tests
+    - name: Run Pytest Suite
       run: |
-        python test_error_scenarios.py
+        python -m pytest -v
 
-    - name: Run End-to-End Integration Tests
+    - name: Run Baseline Audit Probe
       run: |
-        python test_integration.py
+        python tests/probe_audit.py
+
+    - name: Exercise Live Headless Replay (Success Path)
+      run: |
+        python main.py replay --artifact evidence/artifacts/lookup_member_balance.json --params '{"member_id":"67890"}'
+
+    - name: Exercise Live Headless Replay (Business Outcome Path)
+      run: |
+        python main.py replay --artifact evidence/artifacts/lookup_member_balance.json --params '{"member_id":"99999"}'

@@ -55,6 +55,22 @@ class RiskLevel(str, Enum):
     IRREVERSIBLE = "irreversible"
 
 
+class ExecutionStatus(str, Enum):
+    """Disjoint terminal execution states for replay."""
+    SUCCESS = "success"
+    BUSINESS_OUTCOME = "business_outcome"
+    FAILURE = "failure"
+    NEEDS_CONFIRMATION = "needs_confirmation"
+
+
+class BusinessOutcomeRule(BaseModel):
+    """Rule to detect a domain business outcome from page-visible state."""
+    outcome: str
+    selector: Optional[str] = None
+    text_contains: Optional[str] = None
+    description: Optional[str] = None
+
+
 class TargetLocation(BaseModel):
     """How to locate a target element."""
     strategy: LocationStrategy
@@ -62,6 +78,7 @@ class TargetLocation(BaseModel):
     role: Optional[str] = None
     name: Optional[str] = None
     fallback_strategies: List[LocationStrategy] = Field(default_factory=list)
+    resolved_strategy: Optional[str] = None
 
 
 class ParameterDefinition(BaseModel):
@@ -136,6 +153,7 @@ class AutomationArtifact(BaseModel):
     steps: List[ActionStep]
     checkpoint: Checkpoint
     error_handlers: List[ErrorHandler] = Field(default_factory=list)
+    business_outcome_rules: List[BusinessOutcomeRule] = Field(default_factory=list)
     
     def get_parameter_values(self, params: Dict[str, Any]) -> Dict[str, Any]:
         """Validate and prepare parameter values."""
@@ -148,6 +166,10 @@ class AutomationArtifact(BaseModel):
                     result[param_name] = param_def.default
             else:
                 result[param_name] = params[param_name]
+        # Preserve additional runtime and control parameters (e.g., approve_risky)
+        for key, val in params.items():
+            if key not in result:
+                result[key] = val
         return result
     
     def substitute_parameters(self, template: str, params: Dict[str, Any]) -> str:
@@ -160,11 +182,65 @@ class AutomationArtifact(BaseModel):
 
 
 class ExecutionResult(BaseModel):
-    """Result of executing an automation artifact."""
+    """Result of executing an automation artifact with disjoint terminal states."""
+    status: ExecutionStatus
     success: bool
     outputs: Dict[str, Any] = Field(default_factory=dict)
     business_outcome: Optional[str] = None
+    evidence_text: Optional[str] = None
     error: Optional[str] = None
     error_step: Optional[int] = None
+    expected: Optional[str] = None
+    observed: Optional[str] = None
+    screenshot_path: Optional[str] = None
     execution_time_seconds: float
     steps_completed: int
+
+    @classmethod
+    def create_success(cls, outputs: Dict[str, Any], execution_time: float, steps_completed: int) -> "ExecutionResult":
+        return cls(
+            status=ExecutionStatus.SUCCESS,
+            success=True,
+            outputs=outputs,
+            execution_time_seconds=execution_time,
+            steps_completed=steps_completed
+        )
+
+    @classmethod
+    def create_business_outcome(cls, outcome: str, evidence_text: Optional[str], execution_time: float, steps_completed: int) -> "ExecutionResult":
+        return cls(
+            status=ExecutionStatus.BUSINESS_OUTCOME,
+            success=False,
+            business_outcome=outcome,
+            evidence_text=evidence_text,
+            execution_time_seconds=execution_time,
+            steps_completed=steps_completed
+        )
+
+    @classmethod
+    def create_failure(cls, error: str, error_step: Optional[int], expected: Optional[str], observed: Optional[str], execution_time: float, steps_completed: int, screenshot_path: Optional[str] = None) -> "ExecutionResult":
+        return cls(
+            status=ExecutionStatus.FAILURE,
+            success=False,
+            error=error,
+            error_step=error_step,
+            expected=expected,
+            observed=observed,
+            screenshot_path=screenshot_path,
+            execution_time_seconds=execution_time,
+            steps_completed=steps_completed
+        )
+
+    @classmethod
+    def create_needs_confirmation(cls, step_id: int, reason: str, execution_time: float, steps_completed: int, screenshot_path: Optional[str] = None) -> "ExecutionResult":
+        return cls(
+            status=ExecutionStatus.NEEDS_CONFIRMATION,
+            success=False,
+            error_step=step_id,
+            error=f"Confirmation required: {reason}",
+            expected="Human authorization for risky/irreversible action",
+            observed=reason,
+            screenshot_path=screenshot_path,
+            execution_time_seconds=execution_time,
+            steps_completed=steps_completed
+        )

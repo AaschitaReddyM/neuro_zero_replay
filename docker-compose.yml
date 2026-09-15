@@ -31,9 +31,6 @@ services:
       - ./evidence:/app/evidence
       - ./logs:/app/logs
       - ./main.py:/app/main.py
-      - ./mock_discovery.py:/app/mock_discovery.py
-      - ./mock_discovery_transfer.py:/app/mock_discovery_transfer.py
-      - ./mock_discovery_account.py:/app/mock_discovery_account.py
     environment:
       - OPENAI_API_KEY=${OPENAI_API_KEY}
       - OPENAI_MODEL=${OPENAI_MODEL:-gpt-4o}
