@@ -166,6 +166,10 @@ class AutomationArtifact(BaseModel):
                     result[param_name] = param_def.default
             else:
                 result[param_name] = params[param_name]
+        # Preserve additional runtime and control parameters (e.g., approve_risky)
+        for key, val in params.items():
+            if key not in result:
+                result[key] = val
         return result
     
     def substitute_parameters(self, template: str, params: Dict[str, Any]) -> str:

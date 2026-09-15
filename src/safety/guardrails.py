@@ -7,6 +7,41 @@ from src.utils.logging import get_logger
 logger = get_logger(__name__)
 
 
+def redact_sensitive_data(data: Any) -> Any:
+    """Recursively redact sensitive keys and values from dicts, lists, and strings."""
+    import re
+    sensitive_keys = {
+        "password", "ssn", "social_security", "credit_card", "creditcard",
+        "account_number", "routing_number", "token", "secret", "api_key", "pin", "cvv"
+    }
+    
+    patterns = [
+        (re.compile(r'\b\d{3}-\d{2}-\d{4}\b'), '***REDACTED_SSN***'),
+        (re.compile(r'\b\d{9,17}\b'), '***REDACTED_ACCT***'),
+        (re.compile(r'(?i)bearer\s+[a-zA-Z0-9_\-\.]+'), 'Bearer ***REDACTED***'),
+        (re.compile(r'\bsk-[a-zA-Z0-9_\-]{20,}\b'), '***REDACTED_KEY***'),
+    ]
+    
+    if isinstance(data, dict):
+        redacted = {}
+        for key, val in data.items():
+            key_lower = str(key).lower()
+            if any(sens in key_lower for sens in sensitive_keys):
+                redacted[key] = "***REDACTED***"
+            else:
+                redacted[key] = redact_sensitive_data(val)
+        return redacted
+    elif isinstance(data, list):
+        return [redact_sensitive_data(item) for item in data]
+    elif isinstance(data, str):
+        result = data
+        for pattern, replacement in patterns:
+            result = pattern.sub(replacement, result)
+        return result
+    else:
+        return data
+
+
 class SafetyGuardrails:
     """Enforce safety policies and guardrails."""
     
@@ -49,19 +84,9 @@ class SafetyGuardrails:
         risk = self.assess_risk(action_type)
         return risk in [RiskLevel.RISKY, RiskLevel.IRREVERSIBLE]
         
-    def redact_sensitive_data(self, data: Dict[str, Any]) -> Dict[str, Any]:
-        """Redact sensitive data from logs and artifacts."""
-        sensitive_keys = [
-            "password", "ssn", "social_security", "credit_card", "creditcard",
-            "account_number", "routing_number", "token", "secret", "api_key"
-        ]
-        
-        redacted = data.copy()
-        for key in sensitive_keys:
-            if key in redacted:
-                redacted[key] = "***REDACTED***"
-                
-        return redacted
+    def redact_sensitive_data(self, data: Any) -> Any:
+        """Recursively redact sensitive keys and values from dicts, lists, and strings."""
+        return redact_sensitive_data(data)
         
     def validate_action(self, action_type: ActionType, url: Optional[str] = None) -> tuple[bool, Optional[str]]:
         """Validate an action against safety policies."""

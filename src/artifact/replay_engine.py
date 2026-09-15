@@ -7,7 +7,7 @@ from pathlib import Path
 from src.automation.browser import BrowserAutomation
 from src.artifact.schemas import (
     AutomationArtifact, ExecutionResult, ExecutionStatus, ErrorType, 
-    ActionType, CheckpointCondition, BusinessOutcomeRule
+    ActionType, CheckpointCondition, BusinessOutcomeRule, RiskLevel
 )
 from src.safety.guardrails import SafetyGuardrails
 from src.safety.escalation import EscalationManager, InterventionRequest
@@ -89,6 +89,42 @@ class ReplayEngine:
                     error_observed = safety_error
                     logger.error("Safety violation", step=step.step_id, error=error)
                     break
+                
+                # Risk gating policy check
+                if step.risk_level == RiskLevel.RISKY and not validated_params.get("approve_risky"):
+                    error_step = step.step_id
+                    reason = f"Step {step.step_id} ({step.action_type.value}) is marked as 'risky' and requires explicit confirmation (--approve-risky)"
+                    screenshot_path = f"logs/confirmation_required_{step.step_id}.png"
+                    if self.browser:
+                        try:
+                            await self.browser.take_screenshot(screenshot_path)
+                        except Exception:
+                            pass
+                    logger.warning("Risk gate triggered: confirmation required", step=step.step_id, action=step.action_type.value)
+                    return ExecutionResult.create_needs_confirmation(
+                        step_id=step.step_id,
+                        reason=reason,
+                        execution_time=time.time() - start_time,
+                        steps_completed=steps_completed,
+                        screenshot_path=screenshot_path
+                    )
+                elif step.risk_level == RiskLevel.IRREVERSIBLE:
+                    error_step = step.step_id
+                    reason = f"Step {step.step_id} ({step.action_type.value}) is marked as 'irreversible' and requires human escalation"
+                    screenshot_path = f"logs/irreversible_escalation_{step.step_id}.png"
+                    if self.browser:
+                        try:
+                            await self.browser.take_screenshot(screenshot_path)
+                        except Exception:
+                            pass
+                    logger.warning("Risk gate triggered: irreversible action requires escalation", step=step.step_id)
+                    return ExecutionResult.create_needs_confirmation(
+                        step_id=step.step_id,
+                        reason=reason,
+                        execution_time=time.time() - start_time,
+                        steps_completed=steps_completed,
+                        screenshot_path=screenshot_path
+                    )
                 
                 # Execute the step
                 success, result = await self._execute_step(step, validated_params)
@@ -189,6 +225,11 @@ class ReplayEngine:
                 fallback_strategies_used=[]
             )
             
+            # Redact sensitive data from outputs and error observations
+            outputs = self.safety.redact_sensitive_data(outputs)
+            if error_observed:
+                error_observed = self.safety.redact_sensitive_data(error_observed)
+                
             if business_outcome:
                 return ExecutionResult.create_business_outcome(
                     outcome=business_outcome,
