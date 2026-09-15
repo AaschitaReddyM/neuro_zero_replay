@@ -12,7 +12,7 @@
   },
   "created_at": "2026-09-15T11:04:48.097443",
   "status": "resolved",
-  "resume_file": "evidence\\interventions\\escalation_1789484688.resume",
+  "resume_file": "evidence/interventions/escalation_1789484688.resume",
   "human_actions": [
     {
       "type": "human_operator_intervention",

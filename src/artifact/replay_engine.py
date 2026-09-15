@@ -77,7 +77,7 @@ class ReplayEngine:
                 )
             
             # Execute each step (use deep copy to prevent mutating the artifact in-memory)
-            for raw_step in artifact.steps:
+            for i, raw_step in enumerate(artifact.steps):
                 step = raw_step.model_copy(deep=True)
                 step_start = time.time()
                 
@@ -165,55 +165,29 @@ class ReplayEngine:
                     
                     # Store output if this is an extract action
                     if step.action_type == ActionType.EXTRACT and step.output_key:
-                        raw_val = result
-                        out_def = artifact.outputs.get(step.output_key)
+                        ok, coerce_err = self._process_extracted_output(step, result, artifact, outputs)
+                        if not ok:
+                            error = coerce_err
+                            error_step = step.step_id
+                            error_expected = f"Output '{step.output_key}' to be a valid number"
+                            error_observed = coerce_err
+                            break
                         
-                        # Apply regex extraction if specified on step or output definition
-                        regex = getattr(step, "regex", None)
-                        group_idx = 1
-                        if not regex and out_def and out_def.extract:
-                            regex = out_def.extract.get("regex")
-                            group_idx = out_def.extract.get("group", 1)
-                            
-                        if regex and raw_val:
-                            m = re.search(regex, str(raw_val))
-                            if m:
-                                raw_val = m.group(group_idx) if len(m.groups()) >= group_idx else (m.group(1) if m.groups() else m.group(0))
-                            else:
-                                logger.warning("Extract regex did not match raw value", key=step.output_key, regex=regex)
-                                
-                        # Type coercion
-                        coerced_val = raw_val
-                        if out_def:
-                            if out_def.type == ParameterType.NUMBER:
-                                # Strip currency symbols, commas, and whitespace
-                                cleaned = re.sub(r"[^\d.-]", "", str(raw_val).strip()) if raw_val is not None else ""
-                                try:
-                                    if "." in cleaned:
-                                        coerced_val = float(cleaned)
-                                    else:
-                                        coerced_val = int(cleaned)
-                                except Exception:
-                                    observed_msg = f"could not coerce '{raw_val}' to number"
-                                    logger.error("Output type coercion failed", key=step.output_key, error=observed_msg)
-                                    error = observed_msg
-                                    error_step = step.step_id
-                                    error_expected = f"Output '{step.output_key}' to be a valid number"
-                                    error_observed = observed_msg
-                                    break
-                            elif out_def.type == ParameterType.BOOLEAN:
-                                s = str(raw_val).strip().lower()
-                                coerced_val = s in ("true", "yes", "1", "t", "y")
-                            elif out_def.type == ParameterType.STRING:
-                                coerced_val = re.sub(r"[\t\n\r]+", " ", str(raw_val)).strip() if raw_val is not None else ""
-                        elif isinstance(coerced_val, str):
-                            coerced_val = re.sub(r"[\t\n\r]+", " ", coerced_val).strip()
-
-                        outputs[step.output_key] = coerced_val
-                        
-                    # Wait if specified
+                    # Wait if specified: wait for next step target visibility if available, else sleep
                     if step.wait_after:
-                        await asyncio.sleep(step.wait_after / 1000)  # Convert ms to seconds
+                        waited_for_next = False
+                        if i + 1 < len(artifact.steps):
+                            next_step = artifact.steps[i + 1]
+                            if next_step.target and self.browser and getattr(self.browser, "page", None):
+                                try:
+                                    loc = self.browser.get_locator(next_step.target)
+                                    if loc:
+                                        await loc.first.wait_for(state="visible", timeout=min(step.wait_after, 5000))
+                                        waited_for_next = True
+                                except Exception:
+                                    pass
+                        if not waited_for_next:
+                            await asyncio.sleep(step.wait_after / 1000)
                         
                     logger.info("Step completed", step=step.step_id, 
                                action_type=step.action_type.value,
@@ -241,6 +215,15 @@ class ReplayEngine:
                         break
                     elif error_info.get("is_recoverable"):
                         logger.info("Error recovered", step=step.step_id)
+                        if step.action_type == ActionType.EXTRACT and step.output_key:
+                            recovered_val = error_info.get("result")
+                            ok, coerce_err = self._process_extracted_output(step, recovered_val, artifact, outputs)
+                            if not ok:
+                                error = coerce_err
+                                error_step = step.step_id
+                                error_expected = f"Output '{step.output_key}' to be a valid number"
+                                error_observed = coerce_err
+                                break
                         steps_completed += 1
                         continue
                     else:
@@ -383,6 +366,53 @@ class ReplayEngine:
         finally:
             await self.browser.stop()
             
+    def _process_extracted_output(self, step, raw_val: Any, artifact: AutomationArtifact, outputs: Dict[str, Any]) -> tuple[bool, Optional[str]]:
+        """Process and coerce an extracted value according to step and output definitions."""
+        if not (step.action_type == ActionType.EXTRACT and step.output_key):
+            return True, None
+            
+        out_def = artifact.outputs.get(step.output_key)
+        
+        # Apply regex extraction if specified on step or output definition
+        regex = getattr(step, "regex", None)
+        group_idx = 1
+        if not regex and out_def and out_def.extract:
+            regex = out_def.extract.get("regex")
+            group_idx = out_def.extract.get("group", 1)
+            
+        if regex and raw_val:
+            m = re.search(regex, str(raw_val))
+            if m:
+                raw_val = m.group(group_idx) if len(m.groups()) >= group_idx else (m.group(1) if m.groups() else m.group(0))
+            else:
+                logger.warning("Extract regex did not match raw value", key=step.output_key, regex=regex)
+                
+        # Type coercion
+        coerced_val = raw_val
+        if out_def:
+            if out_def.type == ParameterType.NUMBER:
+                # Strip currency symbols, commas, and whitespace
+                cleaned = re.sub(r"[^\d.-]", "", str(raw_val).strip()) if raw_val is not None else ""
+                try:
+                    if "." in cleaned:
+                        coerced_val = float(cleaned)
+                    else:
+                        coerced_val = int(cleaned)
+                except Exception:
+                    observed_msg = f"could not coerce '{raw_val}' to number"
+                    logger.error("Output type coercion failed", key=step.output_key, error=observed_msg)
+                    return False, observed_msg
+            elif out_def.type == ParameterType.BOOLEAN:
+                s = str(raw_val).strip().lower()
+                coerced_val = s in ("true", "yes", "1", "t", "y")
+            elif out_def.type == ParameterType.STRING:
+                coerced_val = re.sub(r"[\t\n\r]+", " ", str(raw_val)).strip() if raw_val is not None else ""
+        elif isinstance(coerced_val, str):
+            coerced_val = re.sub(r"[\t\n\r]+", " ", coerced_val).strip()
+
+        outputs[step.output_key] = coerced_val
+        return True, None
+
     async def _execute_step(self, step, parameters: Dict[str, Any]) -> tuple[bool, Optional[str]]:
         """Execute a single step."""
         try:
@@ -434,7 +464,7 @@ class ReplayEngine:
                         step, handler.fallback_strategy
                     )
                     if success:
-                        return {"is_recoverable": True, "error": None, "is_business_outcome": False}
+                        return {"is_recoverable": True, "error": None, "is_business_outcome": False, "result": result}
         
         # 3. Default: unrecoverable hard failure
         return {
@@ -517,8 +547,13 @@ class ReplayEngine:
             return success, result
         
         elif strategy == "retry_with_refresh":
-            # Retry the action (in real implementation would refresh page)
-            await asyncio.sleep(1)  # Brief pause before retry
+            # Reload page before retrying
+            if self.browser and getattr(self.browser, "page", None):
+                try:
+                    await self.browser.page.reload()
+                    await self.browser.page.wait_for_load_state("domcontentloaded")
+                except Exception:
+                    pass
             success, result = await self.browser.execute_action(
                 step.action_type, step.target, step.value
             )

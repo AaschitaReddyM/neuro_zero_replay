@@ -3,7 +3,7 @@ import asyncio
 import json
 import time
 from dataclasses import dataclass, asdict
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from pathlib import Path
 from typing import Optional, Dict, Any, List
@@ -70,7 +70,7 @@ class EscalationManager:
         if not request.run_id:
             request.run_id = f"run_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
         if not request.created_at:
-            request.created_at = datetime.now().isoformat()
+            request.created_at = datetime.now(timezone.utc).isoformat()
             
         self.active_run_id = request.run_id
         self.pending_intervention = request
@@ -96,12 +96,12 @@ class EscalationManager:
             "step_id": request.current_step,
             "reason": request.reason,
             "control_state": ControlState.HUMAN_CONTROL.value,
-            "screenshot_path": request.screenshot_path,
+            "screenshot_path": Path(request.screenshot_path).as_posix() if request.screenshot_path else None,
             "page_content": excerpt,
             "context": request.context,
             "created_at": request.created_at,
             "status": "pending_human_action",
-            "resume_file": str(self.interventions_dir / f"{request.run_id}.resume"),
+            "resume_file": (self.interventions_dir / f"{request.run_id}.resume").as_posix(),
             "human_actions": []
         }
         redacted_record = redact_sensitive_data(raw_record)
@@ -119,12 +119,12 @@ class EscalationManager:
         print(f"  Failed Step: {request.current_step}")
         print(f"  Reason     : {request.reason}")
         print(f"  Run ID     : {request.run_id}")
-        print(f"  Record     : {intervention_file}")
-        print(f"  Resume File: {self.interventions_dir / f'{request.run_id}.resume'}")
+        print(f"  Record     : {intervention_file.as_posix()}")
+        print(f"  Resume File: {(self.interventions_dir / f'{request.run_id}.resume').as_posix()}")
         print("-" * 76)
         print("  The browser session remains LIVE. Operator actions will be recorded.")
         print(f"  To resume automation:")
-        print(f"    Create signal file: {self.interventions_dir / f'{request.run_id}.resume'}")
+        print(f"    Create signal file: {(self.interventions_dir / f'{request.run_id}.resume').as_posix()}")
         print("=" * 76 + "\n")
         
         return request.run_id
@@ -214,7 +214,7 @@ class EscalationManager:
                         
                 action_record = {
                     "type": "human_operator_intervention",
-                    "timestamp": datetime.now().isoformat(),
+                    "timestamp": datetime.now(timezone.utc).isoformat(),
                     "duration_seconds": round(time.time() - start_wait, 2),
                     "url_before": initial_url,
                     "url_after": final_url,
@@ -247,7 +247,7 @@ class EscalationManager:
                     with open(intervention_file, "r", encoding="utf-8") as f:
                         data = json.load(f)
                     data["status"] = "resolved"
-                    data["resumed_at"] = datetime.now().isoformat()
+                    data["resumed_at"] = datetime.now(timezone.utc).isoformat()
                     data["human_actions"] = self.human_actions
                     with open(intervention_file, "w", encoding="utf-8") as f:
                         json.dump(data, f, indent=2)

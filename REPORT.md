@@ -243,10 +243,19 @@ When automation encounters an ambiguous state, unexpected dialog, consecutive fa
 ### Implementation Mechanics
 1. **Detection**: Stuck states are detected when step counts exceed limits, three consecutive action attempts fail, or risk gates trigger.
 2. **Context Snapshot**: An `InterventionRequest` is generated containing the capability name, current step ID, failure reason, active URL, page text, and a live screenshot.
-3. **Structured Audit Record**: The request is written to `evidence/interventions/<run_id>.json`.
+3. **Structured Audit Record**: The request is written to `evidence/interventions/<run_id>.json` with paths normalized to forward slashes.
 4. **Non-Blocking Control Transfer**: The automation holds the live Playwright browser context open without terminating the session and enters an asynchronous wait loop.
 5. **Resume Signal**: Operators complete required actions in the browser and signal resumption via a signal file (`evidence/interventions/<run_id>.resume`).
-6. **Re-verification**: The engine verifies DOM status post-intervention and safely resumes automated execution.
+6. **Strict Post-Resume Verification**: After receiving a resume signal, the engine does not infer success from generic page elements (such as presence of `h2` or `body`). Instead, it strictly evaluates:
+   - If the step defines an explicit `postcondition: CheckpointCondition`, that condition is verified.
+   - Otherwise, the step itself is re-executed once via `_execute_step`.
+   - If verification fails or the re-execution fails, the run terminates immediately with `ExecutionStatus.FAILURE` and `observed="step re-executed after operator intervention and still failed"`.
+
+### Human Action Capture Mechanics & Limitations
+The current implementation captures human intervention using state differentials and metadata rather than a continuous low-level DOM event trace:
+- **What is recorded**: Before-and-after URL comparison (`url_before`, `url_after`, `url_changed`), page text diffing (`dom_changed` checking whether DOM text altered during human takeover), elapsed operator duration, and optional operator notes provided in the `.resume` signal file.
+- **Why this is not an action trace**: The system does not attach continuous CDP (Chrome DevTools Protocol) event listeners for every mouse click, coordinate, keystroke, or scroll event that occurred during operator control.
+- **What a real production action trace would require**: A production action recording seam would require injecting an in-page recorder (e.g. rrweb or a custom MutationObserver/event-listener harness) or attaching CDP session listeners (`Input.dispatchMouseEvent`, `DOM.mutationEvent`, `Runtime.addBinding`) to stream full user interactions into reproducible automation steps.
 
 ---
 

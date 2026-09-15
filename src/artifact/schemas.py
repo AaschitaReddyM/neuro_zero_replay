@@ -1,7 +1,7 @@
 """Data models and schemas for automation artifacts."""
 from typing import Any, Dict, List, Optional, Union
 from pydantic import BaseModel, Field
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 
 
@@ -136,7 +136,7 @@ class ErrorHandler(BaseModel):
 class ArtifactMetadata(BaseModel):
     """Metadata for the automation artifact."""
     version: str = "1.0"
-    created_at: str = Field(default_factory=lambda: datetime.utcnow().isoformat())
+    created_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
     updated_at: Optional[str] = None
     target_app: str
     capability_name: str
