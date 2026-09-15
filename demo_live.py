@@ -187,7 +187,7 @@ async def demo_artifact_loading():
     artifact_path = Path("evidence/artifacts/lookup_member_balance.json")
     
     if not artifact_path.exists():
-        print("[ERROR] Artifact not found. Run mock_discovery.py first.")
+        print("[ERROR] Artifact not found. Run python main.py discovery first.")
         return
     
     with open(artifact_path, 'r') as f:

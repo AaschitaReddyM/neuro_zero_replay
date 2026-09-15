@@ -66,9 +66,6 @@ COPY --from=builder /root/.cache/ms-playwright /root/.cache/ms-playwright
 COPY src/ ./src/
 COPY target-app/ ./target-app/
 COPY main.py .
-COPY mock_discovery.py .
-COPY mock_discovery_transfer.py .
-COPY mock_discovery_account.py .
 COPY requirements.txt .
 COPY .env.example .env
 

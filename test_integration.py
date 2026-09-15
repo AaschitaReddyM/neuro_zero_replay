@@ -7,10 +7,13 @@ from src.artifact.replay_engine import ReplayEngine
 from src.utils.config import Config
 from src.utils.logging import setup_logging
 
+import pytest
+
 # Setup logging
 logger = setup_logging()
 
 
+@pytest.mark.asyncio
 async def test_full_workflow():
     """Test the complete workflow: discovery → artifact → replay validation."""
     print("=" * 70)
@@ -23,7 +26,7 @@ async def test_full_workflow():
     
     if not artifact_path.exists():
         print(f"[ERROR] Artifact not found at {artifact_path}")
-        print("Run 'python mock_discovery.py' first to generate the artifact.")
+        print("Run 'python main.py discovery ...' first to generate the artifact.")
         return False
     
     with open(artifact_path, 'r') as f:
