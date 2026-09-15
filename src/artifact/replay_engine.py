@@ -206,7 +206,7 @@ class ReplayEngine:
                                    step=step.step_id, error=error)
                         
                         # Human Escalation Seam
-                        if validated_params.get("escalate"):
+                        if options.escalate:
                             logger.info("Escalation triggered for irrecoverable step error", step=step.step_id)
                             screenshot_path = f"logs/escalation_step_{step.step_id}.png"
                             if self.browser:
@@ -241,29 +241,38 @@ class ReplayEngine:
                             )
                             
                             if resume_res.get("resumed"):
-                                logger.info("Session resumed by human operator. Re-checking state or retrying step...", step=step.step_id)
+                                logger.info("Session resumed by human operator. Re-evaluating step...", step=step.step_id)
                                 step_satisfied = False
-                                if self.browser and getattr(self.browser, "page", None):
-                                    try:
-                                        # Check if human already navigated or completed the action on the page
-                                        res_loc = self.browser.page.locator("#account-result, #lookup-result, #transfer-result, h2, h3")
-                                        if await res_loc.count() > 0:
-                                            step_satisfied = True
-                                    except Exception:
-                                        pass
-                                        
+                                verification_path = None
+                                
+                                # 1. If step has a postcondition, evaluate it
+                                if getattr(step, "postcondition", None):
+                                    verification_path = "postcondition"
+                                    step_satisfied = await self._verify_checkpoint_condition(step.postcondition)
+                                
+                                # 2. Otherwise re-execute the step once
                                 if not step_satisfied:
+                                    verification_path = "re_execute"
                                     retry_success, retry_result = await self._execute_step(step, validated_params)
                                     step_satisfied = retry_success
-                                    
+                                
                                 if step_satisfied:
-                                    logger.info("Step completed successfully after operator intervention", step=step.step_id)
+                                    logger.info("Step completed successfully after operator intervention", 
+                                                step=step.step_id, verification_path=verification_path)
                                     steps_completed += 1
                                     error = None
                                     error_step = None
+                                    error_expected = None
+                                    error_observed = None
                                     continue
                                 else:
-                                    logger.error("Step still failing after operator intervention")
+                                    logger.error("Step still failing after operator intervention", 
+                                                 step=step.step_id, verification_path=verification_path)
+                                    error = "Step still failing after operator intervention"
+                                    error_step = step.step_id
+                                    error_expected = f"Step {step.step_id} satisfied by operator or re-execution"
+                                    error_observed = "step re-executed after operator intervention and still failed"
+                                    break
                         break
             
             # Verify checkpoint if no errors and no business outcome
@@ -527,6 +536,17 @@ class ReplayEngine:
             
         except Exception as e:
             logger.error("Checkpoint verification failed", error=str(e))
+            return False
+
+    async def _verify_checkpoint_condition(self, condition: CheckpointCondition) -> bool:
+        """Verify that a specific checkpoint condition is met."""
+        try:
+            return await self.browser.check_checkpoint(
+                condition.target,
+                condition.text_contains
+            )
+        except Exception as e:
+            logger.warning("Checkpoint condition check failed", error=str(e))
             return False
             
     def load_artifact(self, artifact_path: str) -> AutomationArtifact:

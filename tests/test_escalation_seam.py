@@ -5,7 +5,10 @@ import time
 import pytest
 from pathlib import Path
 from src.artifact.replay_engine import ReplayEngine
-from src.artifact.schemas import AutomationArtifact, ExecutionStatus
+from src.artifact.schemas import (
+    AutomationArtifact, ExecutionStatus, RunOptions, 
+    CheckpointCondition, TargetLocation, LocationStrategy
+)
 from src.safety.escalation import EscalationManager, ControlState
 
 @pytest.mark.asyncio
@@ -21,6 +24,11 @@ async def test_escalation_lifecycle():
     # Inject a failure in step 4 to trigger escalation
     artifact.steps[3].target.value = 'button:NonExistentBrokenButton'
     artifact.steps[3].target.name = 'NonExistentBrokenButton'
+    artifact.steps[3].postcondition = CheckpointCondition(
+        type="element_visible",
+        target=TargetLocation(strategy=LocationStrategy.TEXT_CONTENT, value="Account Management Portal"),
+        text_contains="Account Management Portal"
+    )
     
     engine = ReplayEngine()
     
@@ -59,10 +67,12 @@ async def test_escalation_lifecycle():
         
     operator_task = asyncio.create_task(simulate_human_operator())
     
-    # Run with escalate=True and approve_risky=True
+    # Run with RunOptions (separated from params)
+    options = RunOptions(escalate=True, approve_risky=True)
     result = await engine.execute_artifact(
         artifact, 
-        {'member_id': '12345', 'escalate': True, 'approve_risky': True}
+        {'member_id': '12345'},
+        options=options
     )
     
     await operator_task
@@ -70,3 +80,56 @@ async def test_escalation_lifecycle():
     assert result.status == ExecutionStatus.SUCCESS
     assert result.steps_completed == 6
     assert 'John Smith' in str(result.outputs)
+
+
+@pytest.mark.asyncio
+async def test_noop_operator_does_not_pass_step():
+    """Verify that a no-op operator resume signal does NOT pass a broken step."""
+    with open('evidence/artifacts/account_management.json') as f:
+        art_data = json.load(f)
+    artifact = AutomationArtifact(**art_data)
+    
+    # Inject broken step 4 with no postcondition (must re-execute and fail)
+    artifact.steps[3].target.value = 'button:NonExistentBrokenButton'
+    artifact.steps[3].target.name = 'NonExistentBrokenButton'
+    
+    engine = ReplayEngine()
+    
+    async def simulate_noop_operator():
+        interventions_dir = Path('evidence/interventions')
+        found_file = None
+        for _ in range(30):
+            await asyncio.sleep(0.2)
+            files = list(interventions_dir.glob('*.json'))
+            if files:
+                files.sort(key=lambda p: p.stat().st_mtime, reverse=True)
+                newest = files[0]
+                with open(newest) as jf:
+                    data = json.load(jf)
+                if data.get('status') == 'pending_human_action':
+                    found_file = newest
+                    break
+                    
+        assert found_file is not None, 'Intervention record was not written to disk'
+        run_id = found_file.stem
+        
+        # Send resume signal WITHOUT fixing the page (no-op)
+        resume_file = interventions_dir / f'{run_id}.resume'
+        resume_file.write_text(json.dumps({
+            'notes': 'Operator sent resume without touching or fixing the page'
+        }), encoding='utf-8')
+        
+    operator_task = asyncio.create_task(simulate_noop_operator())
+    
+    options = RunOptions(escalate=True, approve_risky=True)
+    result = await engine.execute_artifact(
+        artifact,
+        {'member_id': '12345'},
+        options=options
+    )
+    
+    await operator_task
+    
+    assert result.status == ExecutionStatus.FAILURE
+    assert result.error_step == 4
+    assert "step re-executed after operator intervention and still failed" in result.observed

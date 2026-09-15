@@ -95,6 +95,13 @@ class OutputDefinition(BaseModel):
     description: str
 
 
+class CheckpointCondition(BaseModel):
+    """Condition for verifying successful completion."""
+    type: str = "element_visible"
+    target: TargetLocation
+    text_contains: Optional[str] = None
+
+
 class ActionStep(BaseModel):
     """A single action step in the automation flow."""
     step_id: int
@@ -105,13 +112,7 @@ class ActionStep(BaseModel):
     description: str
     wait_after: Optional[int] = None  # milliseconds to wait after action
     risk_level: RiskLevel = RiskLevel.SAFE
-
-
-class CheckpointCondition(BaseModel):
-    """Condition for verifying successful completion."""
-    type: str = "element_visible"
-    target: TargetLocation
-    text_contains: Optional[str] = None
+    postcondition: Optional[CheckpointCondition] = None
 
 
 class Checkpoint(BaseModel):
