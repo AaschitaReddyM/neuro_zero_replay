@@ -24,29 +24,30 @@ NeuroZero Replay is an enterprise automation platform designed for applications 
 2. **Zero-LLM Deterministic Replay**: The generated artifact is replayed with native Playwright locators (`get_by_role`, `get_by_label`, `get_by_text`) and auto-waiting—completely bypassing the LLM to deliver fast, low-cost, and deterministic execution.
 
 ```mermaid
-flowchart TD
-    subgraph Discovery_Phase ["Phase 1: Autonomous LLM Discovery"]
-        A["User Goal / Intent"] --> B["Agent Orchestrator"]
-        B --> C["Browser Automation Layer (Playwright)"]
-        C --> D["Target Web Application :8080"]
-        D --> E["Accessibility Tree & DOM Snapshot"]
-        E --> F["LLM Client (Gemini / OpenAI)"]
+graph TD
+    subgraph Phase 1: Autonomous LLM Discovery
+        A[User Goal / Intent] --> B[Agent Orchestrator]
+        B --> C[Browser Automation Layer - Playwright]
+        C --> D[Target Web Application - Port 8080]
+        D --> E[Accessibility Tree & DOM Snapshot]
+        E --> F[LLM Client - Gemini / OpenAI]
         F -->|Observe-Decide-Act Loop| B
     end
 
-    subgraph Artifact_Compilation ["Contract Compilation"]
-        B -->|Checkpoint Verified| G["Automation Artifact JSON"]
-        G --> H["Artifact Marketplace & Schema Validation"]
+    subgraph Contract Compilation
+        G[Automation Artifact JSON] --> H[Artifact Marketplace & Schema Validation]
     end
 
-    subgraph Replay_Phase ["Phase 2: Zero-LLM Deterministic Replay"]
-        H --> I["Replay Engine"]
-        I --> J["Parameter Substitution & Allowlist Validation"]
-        J --> K["Playwright Native Locators"]
-        K --> L["Actionability Auto-Waiting & Strategy Fallbacks"]
-        L --> M["Checkpoint & Business Outcome Verification"]
-        M --> N["Structured ExecutionResult"]
+    subgraph Phase 2: Zero-LLM Deterministic Replay
+        I[Replay Engine] --> J[Parameter Substitution & Allowlist Validation]
+        J --> K[Playwright Native Locators]
+        K --> L[Actionability Auto-Waiting & Strategy Fallbacks]
+        L --> M[Checkpoint & Business Outcome Verification]
+        M --> N[Structured ExecutionResult]
     end
+
+    B -->|Checkpoint Verified| G
+    H --> I
 ```
 
 ---
