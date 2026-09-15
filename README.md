@@ -25,28 +25,28 @@ NeuroZero Replay is an enterprise automation platform designed for applications 
 
 ```mermaid
 graph TD
-    subgraph Phase 1: Autonomous LLM Discovery
-        A[User Goal / Intent] --> B[Agent Orchestrator]
-        B --> C[Browser Automation Layer - Playwright]
-        C --> D[Target Web Application - Port 8080]
-        D --> E[Accessibility Tree & DOM Snapshot]
-        E --> F[LLM Client - Gemini / OpenAI]
-        F -->|Observe-Decide-Act Loop| B
+    subgraph P1 ["Phase 1: Autonomous LLM Discovery"]
+        A["User Goal / Intent"] --> B["Agent Orchestrator"]
+        B --> C["Browser Automation Layer (Playwright)"]
+        C --> D["Target Web Application (Port 8080)"]
+        D --> E["Accessibility Tree & DOM Snapshot"]
+        E --> F["LLM Client (Gemini / OpenAI)"]
+        F -->|"Observe-Decide-Act Loop"| B
     end
 
-    subgraph Contract Compilation
-        G[Automation Artifact JSON] --> H[Contract & Schema Validation]
+    subgraph P0 ["Contract Compilation"]
+        G["Automation Artifact JSON"] --> H["Contract & Schema Validation"]
     end
 
-    subgraph Phase 2: Zero-LLM Deterministic Replay
-        I[Replay Engine] --> J[Parameter Substitution & Allowlist Validation]
-        J --> K[Playwright Native Locators]
-        K --> L[Actionability Auto-Waiting & Strategy Fallbacks]
-        L --> M[Checkpoint & Business Outcome Verification]
-        M --> N[Structured ExecutionResult]
+    subgraph P2 ["Phase 2: Zero-LLM Deterministic Replay"]
+        I["Replay Engine"] --> J["Parameter Substitution & Allowlist Validation"]
+        J --> K["Playwright Native Locators"]
+        K --> L["Actionability Auto-Waiting & Strategy Fallbacks"]
+        L --> M["Checkpoint & Business Outcome Verification"]
+        M --> N["Structured ExecutionResult"]
     end
 
-    B -->|Checkpoint Verified| G
+    B -->|"Checkpoint Verified"| G
     H --> I
 ```
 

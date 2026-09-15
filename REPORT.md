@@ -8,28 +8,28 @@ The system implements a two-phase architecture designed to automate web applicat
 
 ```mermaid
 graph TD
-    subgraph Phase 1: Autonomous LLM Discovery
-        A[User Goal / Intent] --> B[Agent Orchestrator]
-        B --> C[Browser Automation Layer - Playwright]
-        C --> D[Target Web Application - Port 8080]
-        D --> E[Accessibility Tree & DOM Snapshot]
-        E --> F[LLM Client - Gemini / OpenAI]
-        F -->|Observe-Decide-Act Loop| B
+    subgraph P1 ["Phase 1: Autonomous LLM Discovery"]
+        A["User Goal / Intent"] --> B["Agent Orchestrator"]
+        B --> C["Browser Automation Layer (Playwright)"]
+        C --> D["Target Web Application (Port 8080)"]
+        D --> E["Accessibility Tree & DOM Snapshot"]
+        E --> F["LLM Client (Gemini / OpenAI)"]
+        F -->|"Observe-Decide-Act Loop"| B
     end
 
-    subgraph Contract Compilation
-        G[Automation Artifact JSON] --> H[Contract & Schema Validation]
+    subgraph P0 ["Contract Compilation"]
+        G["Automation Artifact JSON"] --> H["Contract & Schema Validation"]
     end
 
-    subgraph Phase 2: Zero-LLM Deterministic Replay
-        I[Replay Engine] --> J[Parameter Substitution & Allowlist Validation]
-        J --> K[Playwright Native Locators]
-        K --> L[Actionability Auto-Waiting & Strategy Fallbacks]
-        L --> M[Checkpoint & Business Outcome Verification]
-        M --> N[Structured ExecutionResult]
+    subgraph P2 ["Phase 2: Zero-LLM Deterministic Replay"]
+        I["Replay Engine"] --> J["Parameter Substitution & Allowlist Validation"]
+        J --> K["Playwright Native Locators"]
+        K --> L["Actionability Auto-Waiting & Strategy Fallbacks"]
+        L --> M["Checkpoint & Business Outcome Verification"]
+        M --> N["Structured ExecutionResult"]
     end
 
-    B -->|Checkpoint Verified| G
+    B -->|"Checkpoint Verified"| G
     H --> I
 ```
 
@@ -232,6 +232,16 @@ Enterprise banking environments often involve dozens of tenant institutions runn
 When automation encounters an ambiguous state, unexpected dialog, consecutive failures, or a high-stakes irreversible write action, autonomous execution pauses and transfers control to a human operator.
 
 ### Control State Machine
+```mermaid
+graph LR
+    A["AUTOMATION<br>(Replaying Steps)"] -->|"Failure / Stuck / Risk Gated"| B["PAUSED<br>(Hold Browser Open)"]
+    B -->|"Operator Takeover"| C["HUMAN_CONTROL<br>(Manual Interaction)"]
+    C -->|".resume Signal File"| D["RESUMING<br>(Verify Step / Re-execute)"]
+    D -->|"Verification Passed"| A
+    D -->|"Step Still Failing"| E["FAILURE<br>(Terminal Hard Failure)"]
+    A -->|"Checkpoint Verified"| F["SUCCESS<br>(Final Contract Met)"]
+```
+
 ```
 [AUTOMATION] ──(Failure / Stuck / Risk Gate)──> [PAUSED]
                                                    │
@@ -296,31 +306,31 @@ All data structures, logging streams, and error records are processed by `redact
 
 ---
 
-## 7. Cuts — What Was Deliberately Left Out & What to Build Next
+## 7. Cuts — What I Deliberately Left Out & What I'd Build Next
 
-To preserve engineering focus and adhere to the brief's evaluation criteria (depth over breadth; prioritizing core execution over speculative infrastructure), several non-essential components were deliberately cut, while concrete paths were defined for future production iterations.
+To preserve engineering focus and adhere to the brief's evaluation criteria (depth over breadth; prioritizing core execution over speculative infrastructure), I deliberately cut several non-essential components, while defining concrete paths for future production iterations.
 
-### What Was Deliberately Left Out
+### What I Deliberately Left Out
 
 1. **Operator Console UI**:
-   - *What was cut*: A full WebSocket-driven web dashboard or co-browsing GUI for human operators.
-   - *What was built*: A robust state machine, structured JSON intervention records (`evidence/interventions/`), and atomic file-based resume signaling (`.resume`) that integrates directly with any external console or ticketing webhook.
+   - *What I cut*: A full WebSocket-driven web dashboard or co-browsing GUI for human operators.
+   - *What I built*: A robust state machine, structured JSON intervention records (`evidence/interventions/`), and atomic file-based resume signaling (`.resume`) that integrates directly with any external console or ticketing webhook.
 2. **Desktop OS Automation**:
-   - *What was cut*: Native OS GUI drivers (e.g. Windows pywinauto or macOS Accessibility APIs).
-   - *What was built*: A web-focused Playwright driver utilizing accessibility tree concepts (`get_by_role`, `get_by_label`) that directly translates to desktop accessibility primitives without architectural rework.
+   - *What I cut*: Native OS GUI drivers (e.g. Windows pywinauto or macOS Accessibility APIs).
+   - *What I built*: A web-focused Playwright driver utilizing accessibility tree concepts (`get_by_role`, `get_by_label`) that directly translates to desktop accessibility primitives without architectural rework.
 3. **Multi-Tenant Automated Canonicalization**:
-   - *What was cut*: Autonomous clustering algorithms to automatically infer and merge artifacts across dozens of tenant variants.
-   - *What was built*: Parameterized contracts (`{{member_id}}`), dynamic extraction targets, and tenant metadata fields that support rule-based and manual cross-tenant specialization.
+   - *What I cut*: Autonomous clustering algorithms to automatically infer and merge artifacts across dozens of tenant variants.
+   - *What I built*: Parameterized contracts (`{{member_id}}`), dynamic extraction targets, and tenant metadata fields that support rule-based and manual cross-tenant specialization.
 4. **Mock Discovery Elimination**:
-   - *What was cut*: All legacy mock discovery scripts (`mock_discovery*.py`).
-   - *What was built*: Authentic live discovery in `main.py discovery` powered by real asynchronous Google Gemini REST integration, verified in 4.52 seconds against `http://localhost:8080`.
+   - *What I cut*: All legacy mock discovery scripts (`mock_discovery*.py`).
+   - *What I built*: Authentic live discovery in `main.py discovery` powered by real asynchronous Google Gemini REST integration, verified in 4.52 seconds against `http://localhost:8080`.
 5. **Auxiliary Deployment & Cataloging Infrastructure**:
-   - *What was cut*: Auxiliary deployment packaging (`Dockerfile`, `docker-compose.yml`, `DEPLOYMENT.md`, `.github/workflows/deploy-pages.yml`), compliance checklists, and mock marketplace cataloging (`src/artifact/marketplace.py`, `src/artifact/metrics.py`).
-   - *Why cut*: Out-of-scope for core computer-use automation. The brief specifically penalizes speculative packaging and rewards depth in real browser interaction, deterministic replay, safety boundaries, and human escalation.
+   - *What I cut*: Auxiliary deployment packaging (`Dockerfile`, `docker-compose.yml`, `DEPLOYMENT.md`, `.github/workflows/deploy-pages.yml`), compliance checklists, and mock marketplace cataloging (`src/artifact/marketplace.py`, `src/artifact/metrics.py`).
+   - *Why I cut it*: Out-of-scope for core computer-use automation. The brief specifically penalizes speculative packaging and rewards depth in real browser interaction, deterministic replay, safety boundaries, and human escalation.
 
-### What We'd Build Next (Production Roadmap)
+### What I'd Build Next (Production Roadmap)
 
-With additional engineering investment, the next highest-impact capabilities to introduce are:
+With additional engineering investment, the next highest-impact capabilities I would introduce are:
 
 1. **CDP-Level Action Trace Streaming**:
    - *Objective*: Replace the current state-differential capture (`url_before`, `url_after`, `dom_changed`) with granular event-level recording during operator intervention.
