@@ -26,26 +26,26 @@ NeuroZero Replay is an enterprise automation platform designed for applications 
 ```mermaid
 flowchart TD
     subgraph Discovery_Phase ["Phase 1: Autonomous LLM Discovery"]
-        A[User Goal / Intent] --> B[Agent Orchestrator]
-        B --> C[Browser Automation Layer (Playwright)]
-        C --> D[Target Web Application :8080]
-        D --> E[Accessibility Tree & DOM Snapshot]
-        E --> F[LLM Client (Gemini / OpenAI)]
+        A["User Goal / Intent"] --> B["Agent Orchestrator"]
+        B --> C["Browser Automation Layer (Playwright)"]
+        C --> D["Target Web Application :8080"]
+        D --> E["Accessibility Tree & DOM Snapshot"]
+        E --> F["LLM Client (Gemini / OpenAI)"]
         F -->|Observe-Decide-Act Loop| B
     end
 
     subgraph Artifact_Compilation ["Contract Compilation"]
-        B -->|Checkpoint Verified| G[Automation Artifact JSON]
-        G --> H[Artifact Marketplace & Schema Validation]
+        B -->|Checkpoint Verified| G["Automation Artifact JSON"]
+        G --> H["Artifact Marketplace & Schema Validation"]
     end
 
     subgraph Replay_Phase ["Phase 2: Zero-LLM Deterministic Replay"]
-        H --> I[Replay Engine]
-        I --> J[Parameter Substitution & Allowlist Validation]
-        J --> K[Playwright Native Locators]
-        K --> L[Actionability Auto-Waiting & Strategy Fallbacks]
-        L --> M[Checkpoint & Business Outcome Verification]
-        M --> N[Structured ExecutionResult]
+        H --> I["Replay Engine"]
+        I --> J["Parameter Substitution & Allowlist Validation"]
+        J --> K["Playwright Native Locators"]
+        K --> L["Actionability Auto-Waiting & Strategy Fallbacks"]
+        L --> M["Checkpoint & Business Outcome Verification"]
+        M --> N["Structured ExecutionResult"]
     end
 ```
 
