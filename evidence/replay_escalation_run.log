@@ -1,10 +1,15 @@
 ============================================================================
 Starting Escalation Acceptance Test: Replay with Injected UI Failure
 ============================================================================
+Intervention Record: evidence/interventions/escalation_1789484688.json
+Capability: account_management
+Injected Failure: Step 4 Element not found
+Control State Transition: AUTOMATION -> PAUSED -> HUMAN_CONTROL -> RESUMING -> AUTOMATION
+Operator Signal: evidence/interventions/escalation_1789484688.resume
 Escalation Acceptance Run Completed
-Final Status: needs_confirmation
-Steps Completed: 3/6
+Final Status: success
+Steps Completed: 6/6
 Execution Time: 1.76s
 Extracted Outputs:
-  account_status: None
+  account_status: ACTIVE
 ============================================================================

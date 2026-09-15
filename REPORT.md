@@ -18,7 +18,7 @@ graph TD
     end
 
     subgraph Contract Compilation
-        G[Automation Artifact JSON] --> H[Artifact Marketplace & Schema Validation]
+        G[Automation Artifact JSON] --> H[Contract & Schema Validation]
     end
 
     subgraph Phase 2: Zero-LLM Deterministic Replay
@@ -223,7 +223,7 @@ Enterprise banking environments often involve dozens of tenant institutions runn
 1. **Canonical Base Artifacts**: Core capabilities (e.g., `lookup_member_balance`) are captured on a baseline instance. The artifact captures semantic accessibility roles rather than fragile CSS paths or absolute coordinates.
 2. **Tenant Parameter Overrides**: Tenant differences in credentials, institution routing IDs, or account formatting are injected dynamically via `parameters`.
 3. **Selector Aliases & Fallbacks**: The artifact schema supports `fallback_strategies` and custom selectors per step, allowing an artifact to accommodate minor branding or template divergences without script duplication.
-4. **Tenant Metadata Tagging**: Artifact metadata includes `tenant_id` and `app_version` attributes, allowing tenant-specific variations to be cataloged in the `ArtifactMarketplace`.
+4. **Tenant Metadata Tagging**: Artifact metadata includes `tenant_id` and `app_version` attributes, allowing tenant-specific variations to be cataloged and selected dynamically.
 
 ---
 
@@ -303,3 +303,6 @@ To preserve engineering focus and adhere to the brief's evaluation criteria (dep
 4. **Mock Discovery Elimination**:
    - *What was cut*: All legacy mock discovery scripts (`mock_discovery*.py`).
    - *What was built*: Authentic live discovery in `main.py discovery` powered by real asynchronous Google Gemini REST integration, verified in 4.52 seconds against `http://localhost:8080`.
+5. **Auxiliary Deployment & Cataloging Infrastructure**:
+   - *What was cut*: Auxiliary deployment packaging (`Dockerfile`, `docker-compose.yml`, `DEPLOYMENT.md`, `.github/workflows/deploy-pages.yml`), compliance checklists, and mock marketplace cataloging (`src/artifact/marketplace.py`, `src/artifact/metrics.py`).
+   - *Why cut*: Out-of-scope for core computer-use automation. The brief specifically penalizes speculative packaging and rewards depth in real browser interaction, deterministic replay, safety boundaries, and human escalation.

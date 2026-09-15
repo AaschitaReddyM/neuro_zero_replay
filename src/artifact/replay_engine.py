@@ -15,7 +15,6 @@ from src.safety.guardrails import SafetyGuardrails
 from src.safety.escalation import EscalationManager, InterventionRequest
 from src.utils.config import Config
 from src.utils.logging import get_logger
-from src.artifact.metrics import record_artifact_execution
 
 logger = get_logger(__name__)
 
@@ -23,11 +22,11 @@ logger = get_logger(__name__)
 class ReplayEngine:
     """Execute automation artifacts deterministically without LLM involvement."""
     
-    def __init__(self):
+    def __init__(self, browser: Optional[BrowserAutomation] = None, escalation: Optional[EscalationManager] = None):
         """Initialize the replay engine."""
-        self.browser = BrowserAutomation(headless=True)
+        self.browser = browser or BrowserAutomation(headless=True)
         self.safety = SafetyGuardrails()
-        self.escalation = EscalationManager()
+        self.escalation = escalation or EscalationManager()
         
     async def execute_artifact_with_options(self, artifact: AutomationArtifact,
                                            parameters: Dict[str, Any],
@@ -342,18 +341,6 @@ class ReplayEngine:
             # Determine success
             success = (error is None and business_outcome is None)
             execution_time = time.time() - start_time
-            
-            # Record execution metrics
-            record_artifact_execution(
-                artifact_name=artifact.metadata.capability_name,
-                success=success,
-                execution_time=execution_time,
-                steps_completed=steps_completed,
-                total_steps=len(artifact.steps),
-                error_type=error,
-                business_outcome=business_outcome,
-                fallback_strategies_used=[]
-            )
             
             # Redact sensitive data from error observations
             if error_observed:

@@ -12,8 +12,8 @@ from src.artifact.schemas import (
 from src.safety.escalation import EscalationManager, ControlState
 
 @pytest.mark.asyncio
-async def test_escalation_lifecycle():
-    mgr = EscalationManager()
+async def test_escalation_lifecycle(tmp_path):
+    mgr = EscalationManager(interventions_dir=str(tmp_path))
     assert mgr.get_control_state() == ControlState.AUTOMATION
     
     # Load account_management artifact
@@ -30,11 +30,11 @@ async def test_escalation_lifecycle():
         text_contains="Account Management Portal"
     )
     
-    engine = ReplayEngine()
+    engine = ReplayEngine(escalation=mgr)
     
     async def simulate_human_operator():
         # Wait until intervention file is created
-        interventions_dir = Path('evidence/interventions')
+        interventions_dir = tmp_path
         found_file = None
         for _ in range(30):
             await asyncio.sleep(0.2)
@@ -83,7 +83,7 @@ async def test_escalation_lifecycle():
 
 
 @pytest.mark.asyncio
-async def test_noop_operator_does_not_pass_step():
+async def test_noop_operator_does_not_pass_step(tmp_path):
     """Verify that a no-op operator resume signal does NOT pass a broken step."""
     with open('evidence/artifacts/account_management.json') as f:
         art_data = json.load(f)
@@ -93,10 +93,11 @@ async def test_noop_operator_does_not_pass_step():
     artifact.steps[3].target.value = 'button:NonExistentBrokenButton'
     artifact.steps[3].target.name = 'NonExistentBrokenButton'
     
-    engine = ReplayEngine()
+    mgr = EscalationManager(interventions_dir=str(tmp_path))
+    engine = ReplayEngine(escalation=mgr)
     
     async def simulate_noop_operator():
-        interventions_dir = Path('evidence/interventions')
+        interventions_dir = tmp_path
         found_file = None
         for _ in range(30):
             await asyncio.sleep(0.2)

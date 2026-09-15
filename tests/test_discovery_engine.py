@@ -6,7 +6,7 @@ from src.agent.orchestrator import AgentOrchestrator
 from src.artifact.schemas import (
     AutomationArtifact, ActionStep, ActionType, TargetLocation,
     LocationStrategy, Checkpoint, CheckpointCondition, RiskLevel,
-    ParameterType
+    ParameterType, BusinessOutcomeRule
 )
 from src.artifact.replay_engine import ReplayEngine
 
@@ -20,6 +20,13 @@ def test_discovery_artifact_contract_structure():
         "savings_balance": "$5432.50",
         "account_details": "Member Found\nName: John Smith"
     }
+    orchestrator.business_outcome_rules = [
+        BusinessOutcomeRule(
+            outcome="member_not_found",
+            selector="#lookup-result",
+            text_contains="Member not found"
+        )
+    ]
     
     orchestrator.recorded_steps = [
         ActionStep(

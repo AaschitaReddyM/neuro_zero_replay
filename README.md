@@ -35,7 +35,7 @@ graph TD
     end
 
     subgraph Contract Compilation
-        G[Automation Artifact JSON] --> H[Artifact Marketplace & Schema Validation]
+        G[Automation Artifact JSON] --> H[Contract & Schema Validation]
     end
 
     subgraph Phase 2: Zero-LLM Deterministic Replay
@@ -140,11 +140,12 @@ python main.py replay \
 
 ### Step 6: Run Verification Test Suite
 ```bash
-# Run pytest suite (20 tests covering taxonomy, safety, discovery contracts, and escalation)
+# Run pytest suite (16 tests covering taxonomy, safety, discovery contracts, escalation, and run options)
 python -m pytest -v
 
-# Run baseline probe audit
+# Run baseline probe audits
 python tests/probe_audit.py
+python tests/probe_round2.py
 ```
 
 ---
@@ -159,7 +160,6 @@ python tests/probe_audit.py
 | **Replay Engine** | `src/artifact/replay_engine.py` | Zero-LLM deterministic replay, parameter substitution, checkpoint verification. |
 | **Safety Guardrails** | `src/safety/guardrails.py` | Pre-navigation & post-action domain allowlists, risk gating, recursive PII redaction. |
 | **Escalation Manager** | `src/safety/escalation.py` | Control transfer state machine, session keeping, intervention records, resume signaling. |
-| **Artifact Marketplace**| `src/artifact/marketplace.py`| Cataloging, metadata indexing, and capability discovery. |
 
 ---
 

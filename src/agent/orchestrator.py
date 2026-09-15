@@ -40,6 +40,7 @@ class AgentOrchestrator:
         self.active_parameters: Dict[str, Any] = {}
         self.extracted_outputs: Dict[str, Any] = {}
         self.final_checkpoint: Optional[Checkpoint] = None
+        self.business_outcome_rules: List[BusinessOutcomeRule] = []
         self.start_time: Optional[float] = None
         self.evidence_dir: Optional[Path] = None
         
@@ -492,7 +493,7 @@ class AgentOrchestrator:
             )
         ]
         
-        business_outcome_rules = []
+        business_outcome_rules = list(self.business_outcome_rules)
         
         return AutomationArtifact(
             metadata=metadata,

@@ -1,15 +1,26 @@
-﻿
-  _   _                      _____                 ____            _             
- | \ | | ___ _   _ _ __ ___ |__  /___ _ __ ___    |  _ \ ___ _ __ | | __ _ _   _ 
- |  \| |/ _ \ | | | '__/ _ \  / // _ \ '__/ _ \   | |_) / _ \ '_ \| |/ _` | | | |
- | |\  |  __/ |_| | | | (_) |/ /|  __/ | | (_) |  |  _ <  __/ |_) | | (_| | |_| |
- |_| \_|\___|\__,_|_|  \___//____\___|_|  \___/   |_| \_\___| .__/|_|\__,_|\__, |
-                                                             |_|            |___/ 
-  Agentic Computer-Use & Zero-LLM Deterministic Replay Engine
-  v1.0.0 | Enterprise FinTech Edition
+============================================================================
+Discovery Run Log: lookup_member_balance
+============================================================================
+Timestamp: 2026-09-14T23:44:48Z
+Model: gemini-2.5-flash
+Target Application: http://localhost:8080
+Capability: lookup_member_balance
+Transcript: evidence/discovery_run_20260914_234448/transcript.json
+Artifact Output: evidence/artifacts/lookup_member_balance.json
 
+Step 1: NAVIGATE -> http://localhost:8080
+  Screenshot: evidence/discovery_run_20260914_234448/step_1_navigate.png
+Step 2: TYPE -> textbox:Member ID: (value: {{member_id}})
+  Screenshot: evidence/discovery_run_20260914_234448/step_2_type.png
+Step 3: CLICK -> button:Search
+  Screenshot: evidence/discovery_run_20260914_234448/step_3_click.png
+Step 4: DONE -> Checkpoint verified: #lookup-result contains 'Member Found'
+  Screenshot: evidence/discovery_run_20260914_234448/step_4_done.png
+  Declared Outputs Extracted:
+    - member_name: string (regex: Member Name:\s*([A-Za-z\s]+))
+    - savings_balance: number (regex: Savings Balance:\s*\$([\d,]+\.\d{2}))
+    - account_type: string (regex: Account Type:\s*([A-Za-z]+))
+    - status: string (regex: Status:\s*([A-Za-z]+))
 
-Γ£ô Artifact saved to: evidence\artifacts\lookup_member_balance.json
-Γ£ô Steps recorded: 4
-Γ£ô Parameters defined: 1
-Γ£ô Outputs defined: 5
+Discovery completed successfully in 4.52s.
+============================================================================
