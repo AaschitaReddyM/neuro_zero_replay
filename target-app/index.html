@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Banking Demo System</title>
+    <title>NeuroZero Replay : Agentic Computer-Use &amp; Deterministic Replay Engine</title>
     <style>
         * {
             margin: 0;
@@ -105,6 +105,59 @@
             background-color: #d1ecf1;
             border: 1px solid #bee5eb;
             color: #0c5460;
+        }
+
+        .result.account-active {
+            background-color: #f0fdf4;
+            border: 1px solid #86efac;
+            border-left: 8px solid #16a34a;
+            color: #14532d;
+        }
+
+        .result.account-frozen {
+            background-color: #fef2f2;
+            border: 1px solid #fca5a5;
+            border-left: 8px solid #dc2626;
+            color: #7f1d1d;
+        }
+
+        .result.account-closed {
+            background-color: #f8fafc;
+            border: 1px solid #cbd5e1;
+            border-left: 8px solid #0f172a;
+            color: #0f172a;
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 4px 14px;
+            border-radius: 9999px;
+            font-size: 13px;
+            font-weight: 800;
+            letter-spacing: 0.4px;
+            text-transform: uppercase;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.18);
+            vertical-align: middle;
+        }
+
+        .status-badge.status-active {
+            background-color: #16a34a;
+            color: #ffffff;
+            border: 1px solid #15803d;
+        }
+
+        .status-badge.status-frozen {
+            background-color: #dc2626;
+            color: #ffffff;
+            border: 1px solid #991b1b;
+        }
+
+        .status-badge.status-closed {
+            background-color: #0f172a;
+            color: #ffffff;
+            border: 1px solid #000000;
         }
         
         .nav {
@@ -209,9 +262,7 @@
         <div style="display: flex; align-items: center; justify-content: center; gap: 18px;">
             <img src="logo.png" alt="NeuroZero Replay Logo" class="header-logo" onclick="showLogoModal()" title="Click to view full logo">
             <div style="text-align: left;">
-                <h1 style="margin: 0; font-size: 26px; letter-spacing: -0.5px; font-weight: 700;">NeuroZero Replay</h1>
-                <p style="margin: 3px 0 0 0; font-size: 14px; font-weight: 600; color: #e0f2fe;">Agentic Computer-Use & Deterministic Replay Engine</p>
-                <p style="margin: 2px 0 0 0; font-size: 12px; opacity: 0.85; letter-spacing: 0.3px;">Enterprise FinTech Automation Platform</p>
+                <h1 style="margin: 0; font-size: 22px; letter-spacing: -0.3px; font-weight: 700; line-height: 1.3;">NeuroZero Replay : Agentic Computer-Use &amp; Deterministic Replay Engine</h1>
             </div>
         </div>
     </div>
@@ -220,10 +271,9 @@
     <div id="logo-modal" class="modal-overlay" onclick="closeLogoModal(event)">
         <div class="modal-card" onclick="event.stopPropagation()">
             <img src="logo.png" alt="NeuroZero Replay Logo" class="modal-logo">
-            <h2 style="margin: 0 0 8px 0; font-size: 24px; color: #38bdf8;">NeuroZero Replay</h2>
-            <p style="margin: 0 0 16px 0; font-size: 14px; color: #94a3b8; line-height: 1.5;">
-                <strong style="color: #38bdf8;">Agentic Computer-Use & Deterministic Replay Engine</strong><br>
-                <span style="color: #cbd5e1;">Enterprise FinTech Automation Platform</span>
+            <h2 style="margin: 0 0 10px 0; font-size: 20px; color: #38bdf8; font-weight: 700; line-height: 1.3;">NeuroZero Replay : Agentic Computer-Use &amp; Deterministic Replay Engine</h2>
+            <p style="margin: 0 0 16px 0; font-size: 13.5px; color: #94a3b8; line-height: 1.5;">
+                Enterprise FinTech Automation Platform
             </p>
             <div style="display: flex; gap: 8px; justify-content: center; margin-bottom: 22px; flex-wrap: wrap;">
                 <span style="background: #1e293b; color: #38bdf8; padding: 5px 12px; border-radius: 8px; font-size: 12px; font-weight: 600;">v1.0.0</span>
@@ -233,6 +283,43 @@
             <button onclick="closeLogoModal()" style="background: #0284c7; color: white; border: none; padding: 10px 26px; border-radius: 10px; font-size: 14px; cursor: pointer; font-weight: bold;">
                 Close
             </button>
+        </div>
+    </div>
+    
+    <!-- Policy Guardrail & Human Escalation Modal -->
+    <div id="escalation-modal" class="modal-overlay" onclick="closeEscalationModal(event)">
+        <div class="modal-card" style="max-width: 540px; text-align: left; border: 2px solid #ef4444; box-shadow: 0 20px 50px rgba(0,0,0,0.8), 0 0 35px rgba(239, 68, 68, 0.35);" onclick="event.stopPropagation()">
+            <div style="display: flex; align-items: center; gap: 14px; margin-bottom: 16px;">
+                <div style="background: rgba(239, 68, 68, 0.2); border: 1px solid #ef4444; width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 24px;">
+                    🛡️
+                </div>
+                <div>
+                    <h2 style="margin: 0; font-size: 18px; color: #f87171; letter-spacing: -0.3px;">POLICY GUARDRAIL: HUMAN ESCALATION</h2>
+                    <p style="margin: 3px 0 0 0; font-size: 12px; color: #94a3b8;">Control Transfer &amp; Human-in-the-Loop Gate</p>
+                </div>
+            </div>
+
+            <div style="background: #1e293b; border-left: 4px solid #ef4444; padding: 14px; border-radius: 8px; margin-bottom: 18px; font-size: 13px; line-height: 1.6;">
+                <div style="margin-bottom: 6px;"><strong>Control State:</strong> <code style="background: #0f172a; padding: 2px 6px; border-radius: 4px; color: #94a3b8;">AUTOMATION</code> ➔ <span style="background: #ef4444; color: white; padding: 2px 8px; border-radius: 4px; font-weight: bold; font-size: 11px;">HUMAN_CONTROL</span></div>
+                <div style="margin-bottom: 6px;"><strong>Risk Level:</strong> <span style="color: #f87171; font-weight: 700;">CRITICAL / IRREVERSIBLE</span> (High-Stakes Write)</div>
+                <div style="margin-bottom: 6px;"><strong>Target Account:</strong> <span id="escalation-target-member" style="color: #38bdf8; font-weight: 600;">12345 (John Smith)</span></div>
+                <div style="margin-bottom: 6px;"><strong>Action Requested:</strong> <span style="color: #fbbf24; font-weight: 600;">Freeze Account &amp; Restrict Clearing Debits</span></div>
+                <div style="margin-bottom: 6px;"><strong>Initiating Agent:</strong> <code style="background: #0f172a; padding: 2px 6px; border-radius: 4px; color: #38bdf8;">NeuroZero Replay Engine (Autonomous Driver)</code></div>
+                <div><strong>Timestamp:</strong> <span id="escalation-timestamp" style="color: #cbd5e1; font-family: monospace;">2026-09-14 22:16:17 UTC</span></div>
+            </div>
+
+            <p style="font-size: 13px; color: #cbd5e1; line-height: 1.5; margin-bottom: 22px;">
+                Read actions like balance queries are tagged <strong>SAFE</strong>. High-stakes write actions like freezing accounts trigger policy guardrails, pausing autonomous execution and transferring control to human staff with full session context.
+            </p>
+
+            <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                <button onclick="rejectEscalation()" class="secondary" style="background: #334155; color: #f1f5f9; border: none; padding: 10px 18px; border-radius: 8px; font-size: 13px; cursor: pointer;">
+                    Reject & Resume Automation
+                </button>
+                <button id="escalation-confirm-btn" onclick="confirmEscalationAction()" style="background: #dc2626; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-size: 13px; font-weight: 700; cursor: pointer;">
+                    Authorize & Freeze Account
+                </button>
+            </div>
         </div>
     </div>
     
@@ -285,6 +372,7 @@
                 <input type="text" id="account-mgmt-id" placeholder="Enter member ID">
             </div>
             <button onclick="manageAccount()">Manage Account</button>
+            <button class="secondary" onclick="clearAccountMgmt()">Clear</button>
             
             <div id="account-result" class="result"></div>
         </div>
@@ -322,6 +410,25 @@
                 memberSince: '2017-11-05'
             }
         };
+
+        const mockTransactions = {
+            '12345': [
+                { date: '2026-09-12', desc: 'Enterprise Payroll Direct Deposit', amount: '+$3,500.00', balance: '$5,432.50', status: 'Cleared' },
+                { date: '2026-09-08', desc: 'ATM Cash Withdrawal - Main Branch', amount: '-$200.00', balance: '$1,932.50', status: 'Cleared' },
+                { date: '2026-09-05', desc: 'Utility Autopay - Clean Energy Co', amount: '-$115.30', balance: '$2,132.50', status: 'Cleared' }
+            ],
+            '67890': [
+                { date: '2026-09-11', desc: 'Client Inward Wire Transfer', amount: '+$10,000.00', balance: '$12,500.00', status: 'Cleared' },
+                { date: '2026-09-04', desc: 'Quarterly Investment Dividend', amount: '+$450.00', balance: '$2,500.00', status: 'Cleared' }
+            ],
+            '11111': [
+                { date: '2026-01-10', desc: 'Compliance Freeze Hold Applied', amount: '$0.00', balance: '$890.25', status: 'Hold' },
+                { date: '2026-01-08', desc: 'Suspicious Wire Debit Flagged', amount: '-$500.00', balance: '$890.25', status: 'Flagged' }
+            ],
+            '22222': [
+                { date: '2026-08-01', desc: 'Final Account Closure Settlement', amount: '-$1,420.00', balance: '$0.00', status: 'Closed' }
+            ]
+        };
         
         function showPage(page) {
             // Hide all pages
@@ -354,17 +461,35 @@
             const member = members[memberId];
             
             if (member) {
+                let badgeClass = 'status-active';
+                let icon = '●';
+                let cardTheme = 'account-active';
+
+                if (member.status === 'Frozen') {
+                    badgeClass = 'status-frozen';
+                    icon = '❄';
+                    cardTheme = 'account-frozen';
+                } else if (member.status === 'Closed') {
+                    badgeClass = 'status-closed';
+                    icon = '✖';
+                    cardTheme = 'account-closed';
+                }
+                const statusBadge = `<span class="status-badge ${badgeClass}">${icon} ${member.status}</span>`;
+
                 const html = `
-                    <h3>Member Found</h3>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px solid rgba(0,0,0,0.08); padding-bottom: 8px;">
+                        <h3 style="margin: 0;">Member Found</h3>
+                        ${statusBadge}
+                    </div>
                     <table class="legacy-table">
                         <tr><td><strong>Name:</strong></td><td>${member.name}</td></tr>
-                        <tr><td><strong>Status:</strong></td><td>${member.status}</td></tr>
-                        <tr><td><strong>Balance:</strong></td><td>$${member.balance.toFixed(2)}</td></tr>
+                        <tr><td><strong>Status:</strong></td><td>${statusBadge}</td></tr>
+                        <tr><td><strong>Balance:</strong></td><td><strong>$${member.balance.toFixed(2)}</strong></td></tr>
                         <tr><td><strong>Account Type:</strong></td><td>${member.accountType}</td></tr>
                         <tr><td><strong>Member Since:</strong></td><td>${member.memberSince}</td></tr>
                     </table>
                 `;
-                showResult(resultDiv, 'success', html);
+                showResult(resultDiv, cardTheme, html);
             } else {
                 showResult(resultDiv, 'error', 'Member not found. Please check the member ID and try again.');
             }
@@ -394,6 +519,7 @@
 
             // Enterprise Core Banking Guardrails: Check source account status & balance
             const sourceMember = members[fromAccount];
+            const destMember = members[toAccount];
             if (sourceMember) {
                 if (sourceMember.status === 'Frozen') {
                     showResult(resultDiv, 'error', `Transfer Failed: Source account ${fromAccount} (${sourceMember.name}) is Frozen. Fund transfers are restricted by compliance.`);
@@ -413,24 +539,45 @@
             showResult(resultDiv, 'info', 'Processing transfer...');
             
             setTimeout(() => {
-                // Update in-memory balances for live state consistency
-                if (sourceMember) {
-                    sourceMember.balance -= amount;
-                }
-                const destMember = members[toAccount];
-                if (destMember) {
-                    destMember.balance += amount;
-                }
+                const txnId = `TXN${Date.now()}`;
+                const today = new Date().toISOString().split('T')[0];
 
                 const fromLabel = sourceMember ? `${fromAccount} (${sourceMember.name})` : fromAccount;
                 const toLabel = destMember ? `${toAccount} (${destMember.name})` : toAccount;
+
+                // Update in-memory balances and transaction ledgers for live state consistency
+                if (sourceMember) {
+                    sourceMember.balance -= amount;
+                    if (typeof mockTransactions !== 'undefined' && mockTransactions[fromAccount]) {
+                        mockTransactions[fromAccount].unshift({
+                            date: today,
+                            desc: `Outward Funds Transfer to ${toLabel}`,
+                            amount: `-$${amount.toFixed(2)}`,
+                            balance: `$${sourceMember.balance.toFixed(2)}`,
+                            status: 'Cleared'
+                        });
+                    }
+                }
+                if (destMember) {
+                    destMember.balance += amount;
+                    if (typeof mockTransactions !== 'undefined' && mockTransactions[toAccount]) {
+                        mockTransactions[toAccount].unshift({
+                            date: today,
+                            desc: `Inward Funds Transfer from ${fromLabel}`,
+                            amount: `+$${amount.toFixed(2)}`,
+                            balance: `$${destMember.balance.toFixed(2)}`,
+                            status: 'Cleared'
+                        });
+                    }
+                }
 
                 const html = `
                     <h3>Transfer Completed</h3>
                     <p><strong>From Account:</strong> ${fromLabel}</p>
                     <p><strong>To Account:</strong> ${toLabel}</p>
                     <p><strong>Amount:</strong> $${amount.toFixed(2)}</p>
-                    <p><strong>Confirmation Number:</strong> TXN${Date.now()}</p>
+                    <p><strong>New Available Balance:</strong> $${sourceMember ? sourceMember.balance.toFixed(2) : '0.00'}</p>
+                    <p><strong>Confirmation Number:</strong> ${txnId}</p>
                 `;
                 showResult(resultDiv, 'success', html);
             }, 1500);
@@ -455,21 +602,244 @@
             const member = members[memberId];
             
             if (member) {
+                let resultTheme = 'account-active';
+                let badgeClass = 'status-active';
+                let icon = '●';
+                let actionBtnHtml = '';
+
+                if (member.status === 'Frozen') {
+                    resultTheme = 'account-frozen';
+                    badgeClass = 'status-frozen';
+                    icon = '❄';
+                    actionBtnHtml = `
+                        <button onclick="triggerHumanEscalation('${memberId}')" style="background: #16a34a; color: white; font-weight: 600;">
+                            Unfreeze Account (Policy Gate)
+                        </button>
+                    `;
+                } else if (member.status === 'Closed') {
+                    resultTheme = 'account-closed';
+                    badgeClass = 'status-closed';
+                    icon = '✖';
+                    actionBtnHtml = `
+                        <button disabled style="background: #64748b; color: #cbd5e1; cursor: not-allowed;">
+                            Account Closed (Read-Only)
+                        </button>
+                    `;
+                } else {
+                    resultTheme = 'account-active';
+                    badgeClass = 'status-active';
+                    icon = '●';
+                    actionBtnHtml = `
+                        <button onclick="triggerHumanEscalation('${memberId}')" style="background: #dc2626; color: white; font-weight: 600;">
+                            Freeze Account (Policy Gate)
+                        </button>
+                    `;
+                }
+
+                const statusBadge = `<span class="status-badge ${badgeClass}">${icon} ${member.status}</span>`;
+
                 const html = `
-                    <h3>Account Management</h3>
-                    <p><strong>Member:</strong> ${member.name} (${memberId})</p>
-                    <p><strong>Status:</strong> ${member.status}</p>
-                    <p><strong>Current Balance:</strong> $${member.balance.toFixed(2)}</p>
-                    <div style="margin-top: 15px;">
-                        <button onclick="alert('Feature not implemented in demo')">Freeze Account</button>
-                        <button onclick="alert('Feature not implemented in demo')">Update Information</button>
-                        <button onclick="alert('Feature not implemented in demo')">View Transaction History</button>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px solid rgba(0,0,0,0.08); padding-bottom: 8px;">
+                        <h3 style="margin: 0;">Account Management Portal</h3>
+                        ${statusBadge}
                     </div>
+                    <p style="margin: 8px 0;"><strong>Member:</strong> ${member.name} (<code>${memberId}</code>)</p>
+                    <p style="margin: 8px 0;"><strong>Account Status:</strong> ${statusBadge}</p>
+                    <p style="margin: 8px 0;"><strong>Current Balance:</strong> <span style="font-size: 16px; font-weight: bold;">$${member.balance.toFixed(2)}</span></p>
+                    <div style="margin-top: 18px; display: flex; gap: 8px; flex-wrap: wrap;">
+                        ${actionBtnHtml}
+                        <button onclick="toggleUpdateInfo('${memberId}')">Update Information</button>
+                        <button onclick="toggleTransactionHistory('${memberId}')">View Transaction History</button>
+                    </div>
+                    <div id="edit-container" style="display: none;"></div>
+                    <div id="history-container" style="display: none;"></div>
                 `;
-                showResult(resultDiv, 'success', html);
+                showResult(resultDiv, resultTheme, html);
             } else {
-                showResult(resultDiv, 'error', 'Member not found');
+                showResult(resultDiv, 'error', 'Member not found. Please verify the member ID.');
             }
+        }
+
+        function toggleTransactionHistory(memberId) {
+            const container = document.getElementById('history-container');
+            if (!container) return;
+            if (container.style.display === 'block') {
+                container.style.display = 'none';
+                return;
+            }
+            const txns = mockTransactions[memberId] || [
+                { date: '2026-09-10', desc: 'Standard Account Transaction', amount: '+$100.00', balance: '$100.00', status: 'Cleared' }
+            ];
+            let rowsHtml = '';
+            txns.forEach(t => {
+                const isCredit = t.amount.startsWith('+');
+                const amtColor = isCredit ? '#16a34a' : (t.amount.startsWith('-') ? '#dc2626' : '#64748b');
+                rowsHtml += `
+                    <tr>
+                        <td><code>${t.date}</code></td>
+                        <td>${t.desc}</td>
+                        <td style="color: ${amtColor}; font-weight: bold;">${t.amount}</td>
+                        <td><strong>${t.balance}</strong></td>
+                        <td><span style="font-size: 11px; padding: 2px 8px; border-radius: 4px; background: #e2e8f0; font-weight: 600;">${t.status}</span></td>
+                    </tr>
+                `;
+            });
+            container.innerHTML = `
+                <div style="margin-top: 16px; border-top: 1px solid rgba(0,0,0,0.1); padding-top: 14px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <h4 style="margin: 0;">Verified Transaction Ledger</h4>
+                        <button onclick="document.getElementById('history-container').style.display='none'" style="padding: 4px 10px; font-size: 11px;" class="secondary">Hide</button>
+                    </div>
+                    <table class="legacy-table" style="font-size: 12px;">
+                        <thead>
+                            <tr style="background: #f1f5f9;">
+                                <th>Date</th>
+                                <th>Description</th>
+                                <th>Amount</th>
+                                <th>Ledger Balance</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${rowsHtml}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+            container.style.display = 'block';
+            const editContainer = document.getElementById('edit-container');
+            if (editContainer) editContainer.style.display = 'none';
+        }
+
+        function toggleUpdateInfo(memberId) {
+            const container = document.getElementById('edit-container');
+            if (!container) return;
+            if (container.style.display === 'block') {
+                container.style.display = 'none';
+                return;
+            }
+            const member = members[memberId];
+            if (!member) return;
+            container.innerHTML = `
+                <div style="margin-top: 16px; border-top: 1px solid rgba(0,0,0,0.1); padding-top: 14px;">
+                    <h4 style="margin: 0 0 10px 0;">Update Member Profile</h4>
+                    <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 10px;">
+                        <div style="flex: 1; min-width: 180px;">
+                            <label style="font-size: 12px; font-weight: 600;">Member Name:</label>
+                            <input type="text" id="edit-member-name" value="${member.name}" style="width: 100%; padding: 6px 10px; margin-top: 4px; box-sizing: border-box;">
+                        </div>
+                        <div style="flex: 1; min-width: 140px;">
+                            <label style="font-size: 12px; font-weight: 600;">Account Type:</label>
+                            <select id="edit-member-type" style="width: 100%; padding: 6px 10px; margin-top: 4px; box-sizing: border-box;">
+                                <option value="Savings" ${member.accountType === 'Savings' ? 'selected' : ''}>Savings</option>
+                                <option value="Checking" ${member.accountType === 'Checking' ? 'selected' : ''}>Checking</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 8px;">
+                        <button onclick="saveMemberProfile('${memberId}')" style="background: #0284c7; color: white; padding: 6px 14px; font-size: 12px;">Save Changes</button>
+                        <button onclick="document.getElementById('edit-container').style.display='none'" class="secondary" style="padding: 6px 14px; font-size: 12px;">Cancel</button>
+                    </div>
+                </div>
+            `;
+            container.style.display = 'block';
+            const histContainer = document.getElementById('history-container');
+            if (histContainer) histContainer.style.display = 'none';
+        }
+
+        function saveMemberProfile(memberId) {
+            const member = members[memberId];
+            if (!member) return;
+            const newName = document.getElementById('edit-member-name').value.trim();
+            const newType = document.getElementById('edit-member-type').value;
+            if (newName) member.name = newName;
+            if (newType) member.accountType = newType;
+            manageAccount();
+            const resultDiv = document.getElementById('account-result');
+            const alertBox = document.createElement('div');
+            alertBox.style.marginTop = '12px';
+            alertBox.style.padding = '8px 12px';
+            alertBox.style.background = 'rgba(16, 185, 129, 0.15)';
+            alertBox.style.borderLeft = '4px solid #10b981';
+            alertBox.style.borderRadius = '4px';
+            alertBox.style.fontSize = '12px';
+            alertBox.innerHTML = `<strong>✅ Profile Updated:</strong> Member record for <code>${memberId}</code> updated successfully in core database.`;
+            resultDiv.appendChild(alertBox);
+        }
+
+        function clearAccountMgmt() {
+            document.getElementById('account-mgmt-id').value = '';
+            clearResults();
+        }
+        
+        let activeEscalationMemberId = null;
+
+        function triggerHumanEscalation(memberId) {
+            const member = members[memberId];
+            if (!member) return;
+            activeEscalationMemberId = memberId;
+            const targetSpan = document.getElementById('escalation-target-member');
+            if (targetSpan) {
+                targetSpan.innerText = `${memberId} (${member.name}) — Current Status: ${member.status}`;
+            }
+            const timestampSpan = document.getElementById('escalation-timestamp');
+            if (timestampSpan) {
+                timestampSpan.innerText = new Date().toISOString().replace('T', ' ').substring(0, 19) + ' UTC';
+            }
+            const confirmBtn = document.getElementById('escalation-confirm-btn');
+            if (confirmBtn) {
+                confirmBtn.innerText = member.status === 'Frozen' ? 'Authorize & Unfreeze Account' : 'Authorize & Freeze Account';
+                confirmBtn.style.background = member.status === 'Frozen' ? '#16a34a' : '#dc2626';
+            }
+            const modal = document.getElementById('escalation-modal');
+            if (modal) modal.style.display = 'flex';
+        }
+
+        function closeEscalationModal(event) {
+            const modal = document.getElementById('escalation-modal');
+            if (modal) modal.style.display = 'none';
+        }
+
+        function rejectEscalation() {
+            closeEscalationModal();
+            const resultDiv = document.getElementById('account-result');
+            const member = members[activeEscalationMemberId];
+            showResult(resultDiv, 'info', `
+                <div style="line-height: 1.6;">
+                    <strong>🛡️ [POLICY INTERVENTION REJECTED]</strong><br>
+                    Human Staff Operator rejected the freeze request for <strong>${member ? member.name : activeEscalationMemberId}</strong>.<br>
+                    Ledger status remains <strong>${member ? member.status : 'Active'}</strong>. Control safely returned to <code>AUTOMATION</code>.
+                </div>
+            `);
+        }
+
+        function confirmEscalationAction() {
+            if (!activeEscalationMemberId) return;
+            const member = members[activeEscalationMemberId];
+            if (member) {
+                member.status = member.status === 'Frozen' ? 'Active' : 'Frozen';
+            }
+            closeEscalationModal();
+            manageAccount();
+            
+            const resultDiv = document.getElementById('account-result');
+            const newStatus = member ? member.status : 'Frozen';
+            const statusColor = newStatus === 'Frozen' ? '#ef4444' : '#22c55e';
+            
+            const auditDiv = document.createElement('div');
+            auditDiv.style.marginTop = '16px';
+            auditDiv.style.padding = '12px';
+            auditDiv.style.background = 'rgba(16, 185, 129, 0.15)';
+            auditDiv.style.borderLeft = '4px solid #10b981';
+            auditDiv.style.borderRadius = '6px';
+            auditDiv.style.fontSize = '13px';
+            auditDiv.style.lineHeight = '1.6';
+            auditDiv.innerHTML = `
+                <strong>🛡️ Human Action Logged in Audit Trail:</strong><br>
+                Staff Operator (ID: <code>OP-8492</code>) authorized ledger status transition to <strong style="color: ${statusColor}">${newStatus}</strong>.<br>
+                Control state transitioned: <code>HUMAN_CONTROL</code> ➔ <code>AUTOMATION</code>.
+            `;
+            resultDiv.appendChild(auditDiv);
         }
         
         function showResult(element, type, message) {
@@ -488,10 +858,11 @@
             if (modal) modal.style.display = 'none';
         }
 
-        // Allow pressing Escape key to dismiss the logo modal
+        // Allow pressing Escape key to dismiss modals
         document.addEventListener('keydown', function(e) {
             if (e.key === 'Escape') {
                 closeLogoModal();
+                closeEscalationModal();
             }
         });
     </script>
