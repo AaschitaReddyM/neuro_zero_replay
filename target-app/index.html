@@ -537,6 +537,7 @@
                     <p><strong>From Account:</strong> ${fromLabel}</p>
                     <p><strong>To Account:</strong> ${toLabel}</p>
                     <p><strong>Amount:</strong> $${amount.toFixed(2)}</p>
+                    <p><strong>New Available Balance:</strong> $${sourceMember ? sourceMember.balance.toFixed(2) : '0.00'}</p>
                     <p><strong>Confirmation Number:</strong> TXN${Date.now()}</p>
                 `;
                 showResult(resultDiv, 'success', html);
