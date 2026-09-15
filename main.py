@@ -123,6 +123,7 @@ async def main():
     replay_parser = subparsers.add_parser("replay", help="Run deterministic replay")
     replay_parser.add_argument("--artifact", required=True, help="Path to artifact JSON file")
     replay_parser.add_argument("--params", help="Parameters as JSON string")
+    replay_parser.add_argument("--approve-risky", action="store_true", help="Authorize execution of actions marked with risk_level='risky'")
     
     args = parser.parse_args()
     
@@ -139,6 +140,8 @@ async def main():
     elif args.mode == "replay":
         import json
         params = json.loads(args.params) if args.params else {}
+        if getattr(args, "approve_risky", False):
+            params["approve_risky"] = True
         await run_replay(args.artifact, params)
     else:
         parser.print_help()

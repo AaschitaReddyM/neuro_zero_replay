@@ -107,11 +107,18 @@ class BrowserAutomation:
             name = target.name
             if not name and target.value and ":" in target.value:
                 name = target.value.split(":", 1)[1]
+            if name:
+                loc_exact = self.page.get_by_role(target.role, name=name, exact=True)
+                if await loc_exact.count() > 0:
+                    return loc_exact.first
             loc = self.page.get_by_role(target.role, name=name, exact=False)
             if await loc.count() > 0:
                 return loc.first
         # Fallback to label if role alone or name exists
         if target.name:
+            loc_exact = self.page.get_by_label(target.name, exact=True)
+            if await loc_exact.count() > 0:
+                return loc_exact.first
             loc = self.page.get_by_label(target.name, exact=False)
             if await loc.count() > 0:
                 return loc.first
@@ -130,6 +137,9 @@ class BrowserAutomation:
                 
         # 2. Try accessible label matching if name is available
         if target.name:
+            loc_exact = self.page.get_by_label(target.name, exact=True)
+            if await loc_exact.count() > 0:
+                return loc_exact.first
             loc = self.page.get_by_label(target.name, exact=False)
             if await loc.count() > 0:
                 return loc.first
@@ -150,6 +160,9 @@ class BrowserAutomation:
         if text_val and ":" in text_val and not text_val.startswith(("#", ".")):
             text_val = text_val.split(":", 1)[1]
         if text_val:
+            loc_exact = self.page.get_by_text(text_val, exact=True)
+            if await loc_exact.count() > 0:
+                return loc_exact.first
             loc = self.page.get_by_text(text_val, exact=False)
             if await loc.count() > 0:
                 return loc.first
@@ -192,9 +205,9 @@ class BrowserAutomation:
                     if loc:
                         try:
                             await loc.wait_for(state="visible", timeout=wait_time)
-                            return True, None
                         except Exception:
                             pass
+                # Always pause for the specified wait duration (e.g. for backend/async processing)
                 await self.page.wait_for_timeout(wait_time)
                 return True, None
 
