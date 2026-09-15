@@ -21,7 +21,7 @@ def redact_sensitive_data(data: Any) -> Any:
         (re.compile(r'(?i)bearer\s+[a-zA-Z0-9_\-\.]+'), 'Bearer ***REDACTED***'),
         (re.compile(r'\bsk-[a-zA-Z0-9_\-]{20,}\b'), '***REDACTED_KEY***'),
         (re.compile(r'\$\s?\d[\d,]*\.\d{2}'), '***REDACTED_CURRENCY***'),
-        (re.compile(r'\b(John Smith|Jane Johnson)\b', re.IGNORECASE), '***REDACTED_NAME***'),
+        (re.compile(r'\b(John Smith|Jane Johnson|Bob Williams|Alice Brown)\b', re.IGNORECASE), '***REDACTED_NAME***'),
     ]
     
     if isinstance(data, dict):

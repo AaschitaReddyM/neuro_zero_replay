@@ -53,7 +53,7 @@
       "description": "Member account status",
       "extract": {
         "selector": "#lookup-result",
-        "regex": "Status:\\s*([A-Za-z]+)",
+        "regex": "Status:\\s*[^A-Za-z]*([A-Za-z]+)",
         "group": 1
       }
     }
@@ -183,7 +183,7 @@
       },
       "value": null,
       "output_key": "status",
-      "regex": "Status:\\s*([A-Za-z]+)",
+      "regex": "Status:\\s*[^A-Za-z]*([A-Za-z]+)",
       "description": "Extract status from #lookup-result",
       "wait_after": null,
       "risk_level": "safe"
