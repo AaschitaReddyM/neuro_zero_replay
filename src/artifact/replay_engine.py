@@ -62,18 +62,24 @@ class ReplayEngine:
                     steps_completed=0
                 )
             
-            # Execute each step
-            for step in artifact.steps:
+            # Execute each step (use deep copy to prevent mutating the artifact in-memory)
+            for raw_step in artifact.steps:
+                step = raw_step.model_copy(deep=True)
                 step_start = time.time()
                 
                 # Substitute parameters in value
                 if step.value:
-                    step.value = artifact.substitute_parameters(step.value, parameters)
+                    step.value = artifact.substitute_parameters(step.value, validated_params)
                 
-                # Safety check
+                # Determine resolved URL for navigation actions
+                resolved_url = None
+                if step.action_type == ActionType.NAVIGATE:
+                    resolved_url = step.value if step.value else step.target.value
+                
+                # Safety check on resolved target
                 is_allowed, safety_error = self.safety.validate_action(
                     step.action_type, 
-                    step.target.value if step.action_type == ActionType.NAVIGATE else None
+                    resolved_url
                 )
                 
                 if not is_allowed:
@@ -88,6 +94,23 @@ class ReplayEngine:
                 success, result = await self._execute_step(step, validated_params)
                 
                 if success:
+                    # Post-action URL boundary check (detect any unexpected redirect or navigation off-domain)
+                    if self.browser and getattr(self.browser, "page", None):
+                        current_page_url = self.browser.page.url
+                        if current_page_url and current_page_url != "about:blank":
+                            if not self.safety.is_domain_allowed(current_page_url):
+                                error = f"Navigation boundary violation: navigated off-domain to '{current_page_url}'"
+                                error_step = step.step_id
+                                error_expected = f"URL within allowed domains {self.safety.allowed_domains}"
+                                error_observed = f"Current URL '{current_page_url}' is not in allowlist"
+                                screenshot_path = f"logs/boundary_violation_{step.step_id}.png"
+                                try:
+                                    await self.browser.take_screenshot(screenshot_path)
+                                except Exception:
+                                    pass
+                                logger.error("Off-domain boundary violation", url=current_page_url, step=step.step_id)
+                                break
+
                     steps_completed += 1
                     
                     # Store output if this is an extract action
@@ -208,9 +231,9 @@ class ReplayEngine:
         try:
             # Special handling for navigate action
             if step.action_type == ActionType.NAVIGATE:
-                url = step.target.value
-                if step.value:  # If value is provided, it might be a parameterized URL
-                    url = step.value
+                url = step.value if step.value else step.target.value
+                if not self.safety.is_domain_allowed(url):
+                    return False, f"Safety violation: domain not allowed '{url}'"
                 await self.browser.navigate(url)
                 return True, None
                 

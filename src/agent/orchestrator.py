@@ -129,8 +129,13 @@ class AgentOrchestrator:
         action_type_str = decision.get("action_type", "wait")
         action_type = ActionType(action_type_str)
         
+        # Determine URL if navigating
+        url_to_validate = None
+        if action_type == ActionType.NAVIGATE:
+            url_to_validate = decision.get("value") or decision.get("target_url")
+            
         # Safety check
-        is_allowed, error = self.safety.validate_action(action_type)
+        is_allowed, error = self.safety.validate_action(action_type, url_to_validate)
         if not is_allowed:
             logger.error("Action not allowed by safety policy", action_type=action_type_str, error=error)
             return False, error
@@ -142,6 +147,14 @@ class AgentOrchestrator:
         success, result = await self.browser.execute_action(
             action_type, target, decision.get("value")
         )
+        
+        # Post-action URL boundary check
+        if success and self.browser.page:
+            current_url = self.browser.page.url
+            if current_url and current_url != "about:blank" and not self.safety.is_domain_allowed(current_url):
+                screenshot_path = f"logs/safety_violation_{datetime.now().strftime('%Y%m%d_%H%M%S')}.png"
+                await self.browser.take_screenshot(screenshot_path)
+                return False, f"Domain boundary violation: page navigated to unallowed URL '{current_url}'"
         
         # Record the action
         action_step = ActionStep(
