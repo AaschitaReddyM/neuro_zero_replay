@@ -47,55 +47,68 @@ class AgentOrchestrator:
         self.action_history = []
         self.recorded_steps = []
         
-        # Main agent loop
+        # Main agent loop with timeout enforcement
         step_count = 0
         consecutive_failures = 0
         
-        while step_count < Config.MAX_AGENT_STEPS:
-            # Check for escalation
-            if self.escalation.get_control_state() == ControlState.HUMAN_CONTROL:
-                logger.info("Waiting for human intervention to complete")
-                await self._handle_human_intervention()
-                continue
-                
-            # Check if stuck
-            if self.escalation.detect_stuck_state(step_count, Config.MAX_AGENT_STEPS, consecutive_failures):
-                logger.warning("Agent appears stuck, requesting intervention")
-                await self._request_intervention(goal, step_count, "Agent appears stuck")
-                continue
-                
-            # Get current state
-            current_state = await self._get_current_state()
-            
-            # Get LLM decision
-            try:
-                decision = await self.llm_client.decide_next_action(
-                    goal, current_state, self.action_history
-                )
-            except Exception as e:
-                logger.error("LLM decision failed, retrying", error=str(e))
-                consecutive_failures += 1
-                await asyncio.sleep(2)
-                continue
-                
-            # Execute action
-            success, result = await self._execute_llm_decision(decision, step_count)
-            
-            if success:
-                consecutive_failures = 0
-                step_count += 1
-                
-                # Check if goal is complete
-                if await self._check_goal_completion(goal):
-                    logger.info("Goal completed successfully")
+        try:
+            while step_count < Config.MAX_AGENT_STEPS:
+                # Check if elapsed time exceeded timeout
+                if time.time() - self.start_time > Config.AGENT_TIMEOUT_SECONDS:
+                    logger.error("Agent execution timeout exceeded", timeout=Config.AGENT_TIMEOUT_SECONDS)
                     break
-            else:
-                consecutive_failures += 1
-                logger.warning("Action failed", error=result)
+
+                # Check if stuck
+                if self.escalation.detect_stuck_state(step_count, Config.MAX_AGENT_STEPS, consecutive_failures):
+                    logger.warning("Agent appears stuck, requesting human intervention")
+                    resumed = await self._request_and_wait_intervention(goal, step_count, "Agent appears stuck (max steps or consecutive failures)")
+                    if resumed:
+                        consecutive_failures = 0
+                        continue
+                    else:
+                        logger.error("Human intervention wait timed out or failed")
+                        break
+                    
+                # Get current state
+                current_state = await self._get_current_state()
                 
-                if consecutive_failures >= 3:
-                    logger.error("Too many consecutive failures, requesting intervention")
-                    await self._request_intervention(goal, step_count, f"Action failures: {result}")
+                # Get LLM decision
+                try:
+                    decision = await self.llm_client.decide_next_action(
+                        goal, current_state, self.action_history
+                    )
+                except Exception as e:
+                    logger.error("LLM decision failed, retrying", error=str(e))
+                    consecutive_failures += 1
+                    await asyncio.sleep(2)
+                    continue
+                    
+                # Execute action
+                success, result = await self._execute_llm_decision(decision, step_count)
+                
+                if success:
+                    consecutive_failures = 0
+                    step_count += 1
+                    
+                    # Check if goal is complete
+                    if await self._check_goal_completion(goal):
+                        logger.info("Goal completed successfully")
+                        break
+                else:
+                    consecutive_failures += 1
+                    logger.warning("Action failed", error=result)
+                    
+                    if consecutive_failures >= 3:
+                        logger.error("Too many consecutive failures, requesting intervention")
+                        resumed = await self._request_and_wait_intervention(goal, step_count, f"Action failures: {result}")
+                        if resumed:
+                            consecutive_failures = 0
+                            continue
+                        else:
+                            logger.error("Human intervention timed out or failed")
+                            break
+        except asyncio.TimeoutError:
+            logger.error("Agent timeout reached during discovery", timeout=Config.AGENT_TIMEOUT_SECONDS)
                     
         # Build artifact
         artifact = await self._build_artifact(goal, capability_name, description, target_url)
@@ -204,14 +217,16 @@ class AgentOrchestrator:
         success_indicators = ["success", "completed", "done", "confirmed", "saved"]
         return any(indicator in text for indicator in success_indicators)
         
-    async def _request_intervention(self, goal: str, step: int, reason: str) -> None:
-        """Request human intervention."""
-        # Take screenshot for context
+    async def _request_and_wait_intervention(self, goal: str, step: int, reason: str) -> bool:
+        """Request human intervention, pause session, and block waiting for resume signal."""
         screenshot_path = f"logs/intervention_{datetime.now().strftime('%Y%m%d_%H%M%S')}.png"
-        await self.browser.take_screenshot(screenshot_path)
+        try:
+            await self.browser.take_screenshot(screenshot_path)
+        except Exception:
+            pass
         
-        # Get current state
         current_state = await self._get_current_state()
+        run_id = f"discovery_intervention_{int(time.time())}"
         
         request = InterventionRequest(
             capability_name=goal,
@@ -219,19 +234,13 @@ class AgentOrchestrator:
             reason=reason,
             context=current_state,
             screenshot_path=screenshot_path,
-            page_content=current_state.get("text_content")
+            page_content=current_state.get("text_content"),
+            run_id=run_id
         )
         
         self.escalation.request_intervention(request)
-        
-    async def _handle_human_intervention(self) -> None:
-        """Handle human intervention (mock implementation)."""
-        logger.info("Human intervention handler called")
-        # In a real system, this would wait for human input via an operator console
-        # For this demo, we'll simulate human action and return control
-        await asyncio.sleep(2)
-        self.escalation.record_human_action({"type": "manual_fix", "description": "Simulated human fix"})
-        self.escalation.return_control_to_automation()
+        result = await self.escalation.wait_for_resume(browser=self.browser, timeout=Config.AGENT_TIMEOUT_SECONDS)
+        return result.get("resumed", False)
         
     async def _build_artifact(self, goal: str, capability_name: str, 
                             description: str, target_url: str) -> AutomationArtifact:

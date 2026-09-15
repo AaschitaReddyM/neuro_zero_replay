@@ -124,6 +124,7 @@ async def main():
     replay_parser.add_argument("--artifact", required=True, help="Path to artifact JSON file")
     replay_parser.add_argument("--params", help="Parameters as JSON string")
     replay_parser.add_argument("--approve-risky", action="store_true", help="Authorize execution of actions marked with risk_level='risky'")
+    replay_parser.add_argument("--escalate", action="store_true", help="Enable human escalation on step failures or risk gating")
     
     args = parser.parse_args()
     
@@ -142,6 +143,8 @@ async def main():
         params = json.loads(args.params) if args.params else {}
         if getattr(args, "approve_risky", False):
             params["approve_risky"] = True
+        if getattr(args, "escalate", False):
+            params["escalate"] = True
         await run_replay(args.artifact, params)
     else:
         parser.print_help()

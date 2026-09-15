@@ -1,0 +1,29 @@
+{
+  "run_id": "escalation_1789443201",
+  "capability_name": "account_management",
+  "step_id": 4,
+  "reason": "Step 4 failed: Element not found: strategy=accessibility_role value='button:NonExistentBrokenButton'",
+  "control_state": "human_control",
+  "screenshot_path": "logs/escalation_step_4.png",
+  "page_content": "NeuroZero Replay : Agentic Computer-Use & Deterministic Replay Engine\nMember Lookup\nTransfer Funds\nAccount Management\nAccount Management\nMember ID:\nManage Account Clear",
+  "context": {
+    "step_description": "Click Manage Account button",
+    "error": "Element not found: strategy=accessibility_role value='button:NonExistentBrokenButton'"
+  },
+  "created_at": "2026-09-14T23:33:21.547877",
+  "status": "resolved",
+  "resume_file": "evidence\\interventions\\escalation_1789443201.resume",
+  "human_actions": [
+    {
+      "type": "human_operator_intervention",
+      "timestamp": "2026-09-14T23:33:23.090438",
+      "duration_seconds": 1.53,
+      "url_before": "http://localhost:8080/",
+      "url_after": "http://localhost:8080/",
+      "url_changed": false,
+      "dom_changed": true,
+      "operator_notes": "Operator located member and clicked Manage Account"
+    }
+  ],
+  "resumed_at": "2026-09-14T23:33:23.091442"
+}
